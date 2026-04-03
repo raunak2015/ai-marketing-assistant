@@ -123,6 +123,7 @@ export default function Analytics() {
             <p style={{ fontSize: 24, fontWeight: 900, color: '#2B2218', margin: '0 0 6px', letterSpacing: '-0.5px' }}>{k.value}</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               {k.up ? <UpIcon size={12} color="#7A9A6E" /> : <DownIcon size={12} color="#C05A38" />}
+              <span style={{ fontSize: 12, fontWeight: 600, color: k.up ? '#7A9A6E' : '#C05A38' }}>{k.delta}</span>
             </div>
           </Card>
         ))}
