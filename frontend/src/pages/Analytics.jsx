@@ -133,6 +133,10 @@ export default function Analytics() {
         {/* ROW 1: PRIMARY CHARTS (Side-by-Side) */}
         <div className="chart-row">
           <Card style={{ flex: 1, padding: '24px' }}>
+            <div style={{ marginBottom: 20 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: '#2B2218', margin: '0 0 4px' }}>Impressions Over Time</h3>
+              <p style={{ fontSize: 13, color: '#7A7068', margin: 0 }}>Views across all selected channels (Last 30 days)</p>
+            </div>
           </Card>
         </div>
       </div>
