@@ -165,6 +165,9 @@ export default function Analytics() {
                       <stop offset="95%" stopColor="#C9A96E" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#EEE" />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#B0A89C', fontSize: 11 }} dy={10} />
+                  <YAxis hide />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
