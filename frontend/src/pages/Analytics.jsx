@@ -114,6 +114,10 @@ export default function Analytics() {
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 22 }}>
         {PLAT_TABS.map(p => <button key={p} style={pill(platTab === p)} onClick={() => setPlatTab(p)}>{p}</button>)}
       </div>
+
+      {/* KPI row */}
+      <div className="an-kpi" style={{ marginBottom: 24 }}>
+      </div>
     </div>
   );
 }
