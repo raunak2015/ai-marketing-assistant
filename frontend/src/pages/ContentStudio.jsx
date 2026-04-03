@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Sparkles, Copy, RefreshCw, Video, Hash, MessageSquareText, Image as ImageIcon, Send } from 'lucide-react';
+import { Sparkles, Copy, RefreshCw, Video, Hash, MessageSquareText } from 'lucide-react';
+import api from '../services/api';
 
 const PLATFORMS = ['Instagram', 'YouTube', 'LinkedIn', 'Twitter'];
 const GOALS = ['Engagement', 'Conversion', 'Education', 'Viral Reach', 'Brand Awareness'];
@@ -28,11 +29,39 @@ export default function ContentStudio() {
   const [loading, setLoading] = useState(false);
   const [output, setOutput] = useState(null);
   const [copied, setCopied] = useState(null);
+  const [error, setError] = useState(null);
 
-  const generate = () => {
+  const generate = async () => {
     if (!topic.trim()) return;
     setLoading(true);
-    setTimeout(() => {
+    setError(null);
+    try {
+      const result = await api.generateContent(topic, platform, goal);
+      if (result.success && result.data) {
+        setOutput({
+          hooks: result.data.hooks || [],
+          captions: result.data.captions || [],
+          hashtags: result.data.hashtags || []
+        });
+      } else {
+        setError(result.message || 'Generation failed');
+        // Fallback mock data
+        setOutput({
+          hooks: [
+            'The one secret to viral growth nobody tells you… 🤫',
+            'Stop scrolling! This 2025 workflow will change everything.',
+            'I tried 50 strategies. Only this one worked.',
+          ],
+          captions: [
+            `Building the future of marketing with AI. It's not just about the tools — it's about the strategy. 🚀\n\n#ViralPulse #MarketingTips #AI`,
+            'Your content deserves to be seen. Let\'s make it happen. ✨',
+          ],
+          hashtags: ['#CreatorEconomy', '#ViralGrowth', '#AIMarketing', '#ContentStrategy', '#GrowthHacking'],
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Failed to connect to backend. Using mock data.');
       setOutput({
         hooks: [
           'The one secret to viral growth nobody tells you… 🤫',
@@ -45,8 +74,9 @@ export default function ContentStudio() {
         ],
         hashtags: ['#CreatorEconomy', '#ViralGrowth', '#AIMarketing', '#ContentStrategy', '#GrowthHacking'],
       });
+    } finally {
       setLoading(false);
-    }, 1400);
+    }
   };
 
   const copy = (text, id) => {
@@ -71,11 +101,17 @@ export default function ContentStudio() {
         </div>
       </div>
 
+      {/* Error display */}
+      {error && (
+        <div style={{ background: '#FEE8DC', color: '#C05A38', padding: '12px 20px', borderRadius: 12, marginBottom: 20, fontSize: 13 }}>
+          ⚠️ {error}
+        </div>
+      )}
+
       {/* 2-col layout */}
       <div className="cs-grid">
-        {/* ── LEFT control panel ── */}
+        {/* LEFT control panel */}
         <Card style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Platform */}
           <div>
             <p style={{ fontSize: 10, fontWeight: 800, color: '#B0A89C', letterSpacing: '0.14em', margin: '0 0 12px' }}>PLATFORM</p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -83,7 +119,6 @@ export default function ContentStudio() {
             </div>
           </div>
 
-          {/* Goal */}
           <div>
             <p style={{ fontSize: 10, fontWeight: 800, color: '#B0A89C', letterSpacing: '0.14em', margin: '0 0 12px' }}>GOAL</p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -91,7 +126,6 @@ export default function ContentStudio() {
             </div>
           </div>
 
-          {/* Topic */}
           <div style={{ flex: 1 }}>
             <p style={{ fontSize: 10, fontWeight: 800, color: '#B0A89C', letterSpacing: '0.14em', margin: '0 0 12px' }}>TOPIC OR DESCRIPTION</p>
             <textarea value={topic} onChange={e => setTopic(e.target.value)}
@@ -108,7 +142,6 @@ export default function ContentStudio() {
             />
           </div>
 
-          {/* CTA */}
           <button onClick={generate} disabled={loading || !topic.trim()}
             style={{
               width: '100%', padding: '14px', borderRadius: 999,
@@ -125,7 +158,7 @@ export default function ContentStudio() {
           </button>
         </Card>
 
-        {/* ── RIGHT output ── */}
+        {/* RIGHT output */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {output ? (
             <>

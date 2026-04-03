@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Leaf, Upload, Sparkles, ArrowUp } from 'lucide-react';
+import { Leaf, Upload, Sparkles, ArrowUp, RefreshCw } from 'lucide-react';
+import api from '../services/api';
 
 const platforms = ['Instagram', 'YouTube', 'LinkedIn', 'Twitter'];
 const contentTypes = ['Caption', 'Reel/Short', 'Thumbnail', 'Post Idea', 'Script'];
+
 const suggestions = [
   { text: 'Add a compelling hook in the first 3 seconds to boost watch time.', impact: 'High Impact' },
   { text: 'Include a clear call-to-action like "Save this for later" or "Share with a creator friend".', impact: 'High Impact' },
@@ -38,8 +40,50 @@ export default function ViralStudio() {
   const [contentType, setContentType] = useState('Caption');
   const [text, setText] = useState('');
   const [analyzed, setAnalyzed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [prediction, setPrediction] = useState(null);
+  const [error, setError] = useState(null);
 
-  const handleAnalyze = () => { if (text.trim()) setAnalyzed(true); };
+  const handleAnalyze = async () => {
+    if (!text.trim()) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const contentData = {
+        title: text.slice(0, 100),
+        description: text,
+        hashtags: text.match(/#\w+/g) || [],
+        platform: platform,
+        hasEmoji: /[\u{1F600}-\u{1F6FF}]/u.test(text),
+        hasQuestion: text.includes('?'),
+        hasCallToAction: /(click|share|save|subscribe|follow)/i.test(text)
+      };
+      const result = await api.predictVirality(contentData);
+      if (result.success) {
+        setPrediction(result.data);
+        setAnalyzed(true);
+      } else {
+        setError(result.message || 'Prediction failed');
+        setPrediction({
+          viralityScore: 87,
+          predictedReach: 245000,
+          predictedEngagement: { likes: 4200, comments: 580, shares: 1200 }
+        });
+        setAnalyzed(true);
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Backend not reachable. Using demo values.');
+      setPrediction({
+        viralityScore: 87,
+        predictedReach: 245000,
+        predictedEngagement: { likes: 4200, comments: 580, shares: 1200 }
+      });
+      setAnalyzed(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="px-4 md:px-8 py-6 relative z-10">
@@ -47,6 +91,12 @@ export default function ViralStudio() {
         <h1 className="text-2xl font-bold" style={{ color: '#2B2218' }}>Viral Prediction Studio</h1>
         <button className="btn-ghost text-sm">How It Works</button>
       </div>
+
+      {error && (
+        <div style={{ background: '#FEE8DC', color: '#C05A38', padding: '12px 20px', borderRadius: 12, marginBottom: 20, fontSize: 13 }}>
+          ⚠️ {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Left — Input */}
@@ -98,8 +148,9 @@ export default function ViralStudio() {
             <p className="text-xs" style={{ color: '#B0A89C' }}>PNG, JPG, MP4 up to 50MB</p>
           </div>
 
-          <button onClick={handleAnalyze} className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-base font-semibold">
-            <Sparkles size={16}/> Analyze Virality
+          <button onClick={handleAnalyze} disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-base font-semibold">
+            {loading ? <RefreshCw size={16} className="animate-spin" /> : <Sparkles size={16}/>}
+            {loading ? 'Analyzing...' : 'Analyze Virality'}
           </button>
         </div>
 
@@ -111,12 +162,16 @@ export default function ViralStudio() {
               <h2 className="text-[17px] font-semibold" style={{ color: '#2B2218' }}>Virality Score</h2>
               {analyzed && <span className="pill" style={{ background: '#EEF4EC', color: '#7A9A6E', padding: '4px 12px', fontSize: 12 }}>Analyzed</span>}
             </div>
-            <GaugeChart score={analyzed ? 87 : 0}/>
-            <p className="text-sm font-semibold mt-2" style={{ color: analyzed ? '#7A9A6E' : '#B0A89C' }}>
-              {analyzed ? 'High Viral Potential' : 'Submit content to analyze'}
+            <GaugeChart score={analyzed ? (prediction?.viralityScore || 87) : 0}/>
+            <p className="text-sm font-semibold mt-2" style={{ color: analyzed ? (prediction?.viralityScore >= 70 ? '#7A9A6E' : '#C9A96E') : '#B0A89C' }}>
+              {analyzed ? (prediction?.viralityScore >= 70 ? 'High Viral Potential' : 'Medium Potential') : 'Submit content to analyze'}
             </p>
             <div className="grid grid-cols-3 gap-2 mt-4 w-full">
-              {[['Shareability','92'],['Eng. Fit','78'],['Trend Match','88']].map(([l,v])=>(
+              {[
+                ['Shareability', prediction?.shareability || '92'],
+                ['Eng. Fit', prediction?.engagementFit || '78'],
+                ['Trend Match', prediction?.trendMatch || '88']
+              ].map(([l, v]) => (
                 <div key={l} className="subcard text-center">
                   <div className="text-lg font-bold tabular-nums" style={{ color: analyzed ? '#C05A38' : '#B0A89C' }}>{analyzed ? v : '—'}</div>
                   <div className="text-[10px]" style={{ color: '#7A7068' }}>{l}</div>
@@ -151,19 +206,32 @@ export default function ViralStudio() {
           <div className="card">
             <h2 className="text-[17px] font-semibold mb-3" style={{ color: '#2B2218' }}>Predicted Reach</h2>
             <div className="grid grid-cols-2 gap-3">
-              {[['Est. Reach','245K'],['Est. Impressions','1.2M']].map(([l,v])=>(
+              {[
+                ['Est. Reach', analyzed ? (prediction?.predictedReach ? (prediction.predictedReach / 1000).toFixed(0) + 'K' : '245K') : '—'],
+                ['Est. Impressions', analyzed ? (prediction?.predictedReach ? (prediction.predictedReach * 1.8 / 1000).toFixed(0) + 'K' : '1.2M') : '—']
+              ].map(([l, v]) => (
                 <div key={l} className="subcard">
                   <div className="flex items-center gap-1 mb-1">
                     <ArrowUp size={13} style={{ color: '#7A9A6E' }}/>
                     <span className="text-xs" style={{ color: '#7A7068' }}>{l}</span>
                   </div>
-                  <div className="text-2xl font-bold tabular-nums" style={{ color: analyzed ? '#2B2218' : '#B0A89C' }}>{analyzed ? v : '—'}</div>
+                  <div className="text-2xl font-bold tabular-nums" style={{ color: analyzed ? '#2B2218' : '#B0A89C' }}>{v}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
       </div>
+
+      <style>{`
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
