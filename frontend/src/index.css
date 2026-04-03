@@ -1,0 +1,199 @@
+@import "tailwindcss";
+
+:root {
+  --color-bg: #EDE8DF;
+  --color-card: #FAF7F2;
+  --color-subcard: #E8E0D4;
+  --color-primary: #C05A38;
+  --color-primary-hover: #A8442A;
+  --color-secondary: #7A9A6E;
+  --color-tertiary: #C9A96E;
+  --color-accent: #506B40;
+  --color-text: #2B2218;
+  --color-text-muted: #7A7068;
+  --color-text-faint: #B0A89C;
+  --color-border: #DDD6CA;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background-color: #EDE8DF;
+  color: #2B2218;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  text-align: left;
+  border: none;
+  display: block;
+}
+
+/* Tabular numbers for data */
+.tabular-nums {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Botanical SVG decorations */
+.botanical-tr {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 220px;
+  height: 220px;
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.botanical-br {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 160px;
+  height: 160px;
+  opacity: 0.12;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Card base */
+.card {
+  background: #FAF7F2;
+  border-radius: 20px;
+  border: 1px solid #DDD6CA;
+  box-shadow: 0 2px 8px rgba(43,34,24,0.07);
+  padding: 24px;
+  transition: box-shadow 180ms cubic-bezier(0.16,1,0.3,1);
+}
+
+.card:hover {
+  box-shadow: 0 10px 32px rgba(43,34,24,0.10);
+}
+
+.subcard {
+  background: #E8E0D4;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+/* Pill button styles */
+.btn-primary {
+  background: #C05A38;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background 180ms cubic-bezier(0.16,1,0.3,1);
+}
+
+.btn-primary:hover {
+  background: #A8442A;
+}
+
+.btn-secondary {
+  background: #FAF7F2;
+  color: #2B2218;
+  border: 1px solid #DDD6CA;
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background 180ms cubic-bezier(0.16,1,0.3,1);
+}
+
+.btn-secondary:hover {
+  background: #E8E0D4;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: #2B2218;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background 180ms cubic-bezier(0.16,1,0.3,1);
+}
+
+.btn-ghost:hover {
+  background: #E8E0D4;
+}
+
+/* Pill tag */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.pill-primary { background: #C05A38; color: white; }
+.pill-secondary { background: #7A9A6E; color: white; }
+.pill-tertiary { background: #C9A96E; color: white; }
+.pill-sand { background: #E8E0D4; color: #2B2218; }
+.pill-sage { background: #7A9A6E; color: white; }
+
+/* Gauge animation */
+@keyframes sweepNeedle {
+  from { transform: rotate(-90deg); }
+  to { transform: rotate(var(--needle-angle)); }
+}
+
+/* Number count-up animation */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  animation: fadeUp 300ms cubic-bezier(0.16,1,0.3,1) forwards;
+}
+
+/* Progress bar fill animation */
+@keyframes fillBar {
+  from { width: 0; }
+}
+
+.animate-fill { animation: fillBar 600ms cubic-bezier(0.16,1,0.3,1) forwards; }
+
+/* Shimmer skeleton */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #E8E0D4 25%, #F0EBE3 50%, #E8E0D4 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #EDE8DF; }
+::-webkit-scrollbar-thumb { background: #DDD6CA; border-radius: 999px; }
