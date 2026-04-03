@@ -78,3 +78,11 @@ const platColor = {
 };
 
 const vColor = (v) => v >= 85 ? '#7A9A6E' : v >= 75 ? '#C9A96E' : '#C05A38';
+
+const Card = ({ children, style = {} }) => (
+  <div style={{
+    background: '#FAF9F6', borderRadius: 16, border: '1px solid #EAE4DC',
+    boxShadow: '0 1px 8px rgba(43,34,24,0.05)', padding: '22px',
+    boxSizing: 'border-box', ...style,
+  }}>{children}</div>
+);
