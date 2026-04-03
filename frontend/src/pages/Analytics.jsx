@@ -140,6 +140,9 @@ export default function Analytics() {
             <div style={{ height: 260 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={lineData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#EEE" />
+                  <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fill: '#B0A89C', fontSize: 11 }} dy={10} />
+                  <YAxis hide domain={[0, 'dataMax + 10000']} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
