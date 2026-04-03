@@ -137,6 +137,12 @@ export default function Analytics() {
               <h3 style={{ fontSize: 18, fontWeight: 800, color: '#2B2218', margin: '0 0 4px' }}>Impressions Over Time</h3>
               <p style={{ fontSize: 13, color: '#7A7068', margin: 0 }}>Views across all selected channels (Last 30 days)</p>
             </div>
+            <div style={{ height: 260 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={lineData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </Card>
         </div>
       </div>
