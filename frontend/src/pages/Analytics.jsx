@@ -59,3 +59,11 @@ const contentTable = [
   { title: 'B2B Content Strategy That Actually Works',       platform: 'LinkedIn',  views: '34.0K',  eng: '6.1', v: 74, posted: '1 week ago' },
   { title: 'AI Tools Comparison 2025 | Full Review',        platform: 'YouTube',   views: '89.0K',  eng: '8.3', v: 86, posted: '2 weeks ago' },
 ];
+
+const algoMetrics = [
+  { label: 'Watch Time Retention', score: 78 },
+  { label: 'Save Rate',            score: 62 },
+  { label: 'Comment Rate',         score: 84 },
+  { label: 'Share Rate',           score: 71 },
+  { label: 'CTR',                  score: 55 },
+];
