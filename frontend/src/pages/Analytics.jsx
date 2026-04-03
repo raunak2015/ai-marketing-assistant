@@ -34,3 +34,12 @@ const lineData = [
   { week: 'Week 5', instagram: 32000, youtube: 28000, tiktok: 72000, linkedin: 15000, twitter: 30000 },
   { week: 'Week 6', instagram: 48000, youtube: 35000, tiktok: 92000, linkedin: 18000, twitter: 28000 },
 ];
+
+const followerData = [
+  { month: 'Jan', followers: 12000 },
+  { month: 'Feb', followers: 16000 },
+  { month: 'Mar', followers: 20000 },
+  { month: 'Apr', followers: 24000 },
+  { month: 'May', followers: 30000 },
+  { month: 'Jun', followers: 39000 },
+];
