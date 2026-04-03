@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, TrendingUp, Zap, BarChart2, Archive,
   Bell, Settings, Menu, X, Plus, SlidersHorizontal,
-  ChevronDown
+  ChevronDown, User, LogOut
 } from 'lucide-react';
 
 /* ── Botanical top-right decoration ── */
@@ -27,7 +27,7 @@ const navLinks = [
   { to: '/trends',    label: 'Campaigns', icon: Zap },
   { to: '/studio',    label: 'GrowthMaps', icon: Zap },
   { to: '/analytics', label: 'Analytics',  icon: BarChart2 },
-  { to: '/strategy',  label: 'Archive',    icon: Archive },
+  { to: '/schedule',  label: 'Schedule',   icon: Archive },
 ];
 
 const bottomTabs = [
@@ -43,6 +43,7 @@ export default function Layout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
 
@@ -86,30 +87,18 @@ export default function Layout({ children }) {
 
         {/* Right actions — hidden on mobile */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }} className="desktop-actions">
-          {/* AddBlock */}
-          <button style={{
-            padding: '7px 16px', borderRadius: 999,
-            border: '1.5px solid #DDD6CA', background: '#FAF7F2',
-            fontSize: 13, fontWeight: 500, color: '#2B2218',
-            cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6,
-            transition: 'background 150ms',
-          }}
-            onMouseEnter={e => e.currentTarget.style.background = '#E8E0D4'}
-            onMouseLeave={e => e.currentTarget.style.background = '#FAF7F2'}>
-            <Plus size={14}/> AddBlock
-          </button>
-
-          {/* Set Automation */}
+          {/* Automation */}
           <button style={{
             padding: '8px 18px', borderRadius: 999,
             background: '#C05A38', color: '#fff', border: 'none',
             fontSize: 13, fontWeight: 600, cursor: 'pointer',
             fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6,
             transition: 'background 150ms',
+            boxShadow: '0 4px 12px rgba(192,90,56,0.2)',
           }}
             onMouseEnter={e => e.currentTarget.style.background = '#A8442A'}
             onMouseLeave={e => e.currentTarget.style.background = '#C05A38'}>
-            <SlidersHorizontal size={14}/> Set Automation
+            <Zap size={14}/> Automation
           </button>
 
           {/* Bell */}
@@ -119,23 +108,58 @@ export default function Layout({ children }) {
             <Bell size={18}/>
           </button>
 
-          {/* Profile Container (Replaces standalone Settings button) */}
-          <Link to="/settings" style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            padding: '4px 8px', borderRadius: 999,
-            textDecoration: 'none', transition: 'background 150ms',
-            background: isActive('/settings') ? '#E8E0D4' : 'transparent',
-          }}
-            onMouseEnter={e => e.currentTarget.style.background = '#E8E0D4'}
-            onMouseLeave={e => e.currentTarget.style.background = isActive('/settings') ? '#E8E0D4' : 'transparent'}>
+          {/* Profile Dropdown Container */}
+          <div 
+            style={{ position: 'relative' }}
+            onMouseEnter={() => setProfileOpen(true)}
+            onMouseLeave={() => setProfileOpen(false)}
+          >
             <div style={{
-              width: 32, height: 32, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #C05A38, #7A9A6E)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontSize: 13, fontWeight: 700, flexShrink: 0,
-            }}>PS</div>
-            <ChevronDown size={14} style={{ color: '#7A7068' }}/>
-          </Link>
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '4px 8px', borderRadius: 999,
+              cursor: 'pointer', transition: 'background 150ms',
+              background: (isActive('/settings') || profileOpen) ? '#E8E0D4' : 'transparent',
+            }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: '50%',
+                background: 'linear-gradient(135deg, #C05A38, #7A9A6E)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#fff', fontSize: 13, fontWeight: 700, flexShrink: 0,
+              }}>PS</div>
+              <ChevronDown size={14} style={{ color: '#7A7068', transform: profileOpen ? 'rotate(180deg)' : 'none', transition:'transform 150ms' }}/>
+            </div>
+
+            {/* Dropdown Menu */}
+            {profileOpen && (
+              <div style={{
+                position: 'absolute', top: '100%', right: 0, 
+                paddingTop: 8, // Bridge the gap for hover
+                width: 180, zIndex: 200, animation: 'fadeIn 0.2s ease',
+              }}>
+                <div style={{
+                  background: '#FAF7F2', border: '1px solid #DDD6CA',
+                  borderRadius: 16, boxShadow: '0 12px 32px rgba(43,34,24,0.12)',
+                  overflow: 'hidden',
+                }}>
+                  <style>{`
+                    @keyframes fadeIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+                    .pm-item { display: flex; alignItems: center; gap: 10px; padding: 12px 16px; font-size: 13px; color: #2B2218; text-decoration: none; transition: background 150ms; cursor: pointer; border: none; background: none; width: 100%; text-align: left; font-family: inherit; }
+                    .pm-item:hover { background: #F0EBE3; color: #C05A38; }
+                  `}</style>
+                  <Link to="/profile" className="pm-item">
+                    <User size={15} color="#7A7068" /> View Profile
+                  </Link>
+                  <Link to="/settings" className="pm-item">
+                    <Settings size={15} color="#7A7068" /> Settings
+                  </Link>
+                  <div style={{ height: 1, background: '#DDD6CA', margin: '4px 0' }} />
+                  <button className="pm-item" style={{ color: '#C05A38' }} onClick={() => console.log('Logout')}>
+                    <LogOut size={15} /> Logout
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Mobile hamburger */}
@@ -165,12 +189,9 @@ export default function Layout({ children }) {
                 {label}
               </Link>
             ))}
-            <div style={{ margin: '8px 12px', paddingTop: 8, borderTop: '1px solid #E8E0D4', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button style={{ flex: 1, padding: '10px', borderRadius: 999, border: '1.5px solid #DDD6CA', background: '#F0EBE3', fontSize: 13, fontWeight: 500, color: '#2B2218', cursor: 'pointer', fontFamily: 'inherit' }}>
-                <Plus size={13} style={{ display: 'inline', marginRight: 4 }}/> AddBlock
-              </button>
+            <div style={{ margin: '8px 12px', paddingTop: 8, borderTop: '1px solid #E8E0D4', display: 'flex' }}>
               <button style={{ flex: 1, padding: '10px', borderRadius: 999, background: '#C05A38', border: 'none', fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}>
-                Set Automation
+                <Zap size={13} style={{ display: 'inline', marginRight: 4 }}/> Automation
               </button>
             </div>
           </div>

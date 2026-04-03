@@ -5,6 +5,7 @@ import Trends from './pages/Trends';
 import ContentStudio from './pages/ContentStudio';
 import Analytics from './pages/Analytics';
 import Strategy from './pages/Strategy';
+import Schedule from './pages/Archive';
 import Chat from './pages/Chat';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
@@ -25,6 +26,7 @@ function App() {
         <Route path="/studio" element={<Layout><ContentStudio /></Layout>} />
         <Route path="/analytics" element={<Layout><Analytics /></Layout>} />
         <Route path="/strategy" element={<Layout><Strategy /></Layout>} />
+        <Route path="/schedule" element={<Layout><Schedule /></Layout>} />
         <Route path="/chat" element={<Layout><Chat /></Layout>} />
         <Route path="/settings" element={<Layout><Settings /></Layout>} />
 
