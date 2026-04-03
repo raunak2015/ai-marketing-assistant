@@ -121,6 +121,9 @@ export default function Analytics() {
           <Card key={k.label} style={{ padding: '18px 18px' }}>
             <p style={{ fontSize: 10, fontWeight: 700, color: '#B0A89C', letterSpacing: '0.1em', margin: '0 0 8px' }}>{k.label.toUpperCase()}</p>
             <p style={{ fontSize: 24, fontWeight: 900, color: '#2B2218', margin: '0 0 6px', letterSpacing: '-0.5px' }}>{k.value}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              {k.up ? <UpIcon size={12} color="#7A9A6E" /> : <DownIcon size={12} color="#C05A38" />}
+            </div>
           </Card>
         ))}
       </div>
