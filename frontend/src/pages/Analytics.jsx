@@ -189,6 +189,19 @@ export default function Analytics() {
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+                <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: '#B0A89C' }}>TOTAL</p>
+                <p style={{ margin: 0, fontSize: 20, fontWeight: 900, color: '#2B2218' }}>100%</p>
+              </div>
+            </div>
+            <div style={{ marginTop: 24, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {donut.map(d => (
+                <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: d.color }}></div>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: '#4A4036' }}>{d.name}</span>
+                  <span style={{ fontSize: 12, color: '#7A7068', marginLeft: 'auto' }}>{d.value}%</span>
+                </div>
+              ))}
             </div>
           </Card>
         </div>
