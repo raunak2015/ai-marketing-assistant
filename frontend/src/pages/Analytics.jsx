@@ -217,6 +217,22 @@ export default function Analytics() {
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {contentTable.map((item, idx) => (
                 <div key={idx} style={{ display: 'flex', padding: '14px 0', borderBottom: idx === contentTable.length - 1 ? 'none' : '1px solid #F4F0EB', alignItems: 'center' }}>
+                  <div style={{ flex: 3 }}>
+                    <p style={{ margin: '0 0 6px', fontSize: 13, fontWeight: 700, color: '#2B2218', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</p>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <span style={{ 
+                        fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4,
+                        background: platColor[item.platform]?.bg || '#EEE',
+                        color: platColor[item.platform]?.text || '#666'
+                      }}>{item.platform.toUpperCase()}</span>
+                      <span style={{ fontSize: 11, color: '#B0A89C' }}>Posted {item.posted}</span>
+                    </div>
+                  </div>
+                  <span style={{ flex: 1, textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#4A4036' }}>{item.views}</span>
+                  <span style={{ flex: 1, textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#7A9A6E' }}>{item.eng}%</span>
+                  <div style={{ flex: 1, textAlign: 'right' }}>
+                    <span style={{ fontSize: 14, fontWeight: 900, color: vColor(item.v) }}>{item.v}%</span>
+                  </div>
                 </div>
               ))}
             </div>
