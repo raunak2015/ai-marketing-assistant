@@ -143,6 +143,9 @@ export default function Analytics() {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#EEE" />
                   <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fill: '#B0A89C', fontSize: 11 }} dy={10} />
                   <YAxis hide domain={[0, 'dataMax + 10000']} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', padding: '12px' }} />
+                  <Line type="monotone" dataKey="tiktok"    stroke="#7A9A6E" strokeWidth={4} dot={false} activeDot={{ r: 6, strokeWidth: 0 }} />
+                  <Line type="monotone" dataKey="instagram" stroke="#C05A38" strokeWidth={4} dot={false} activeDot={{ r: 6, strokeWidth: 0 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
