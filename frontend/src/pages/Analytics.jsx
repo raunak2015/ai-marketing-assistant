@@ -109,6 +109,11 @@ export default function Analytics() {
           {DATE_RANGES.map(d => <button key={d} style={pill(range === d)} onClick={() => setRange(d)}>{d}</button>)}
         </div>
       </div>
+
+      {/* Platform tabs */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 22 }}>
+        {PLAT_TABS.map(p => <button key={p} style={pill(platTab === p)} onClick={() => setPlatTab(p)}>{p}</button>)}
+      </div>
     </div>
   );
 }
