@@ -120,6 +120,7 @@ export default function Analytics() {
         {kpis.map(k => (
           <Card key={k.label} style={{ padding: '18px 18px' }}>
             <p style={{ fontSize: 10, fontWeight: 700, color: '#B0A89C', letterSpacing: '0.1em', margin: '0 0 8px' }}>{k.label.toUpperCase()}</p>
+            <p style={{ fontSize: 24, fontWeight: 900, color: '#2B2218', margin: '0 0 6px', letterSpacing: '-0.5px' }}>{k.value}</p>
           </Card>
         ))}
       </div>
