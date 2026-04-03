@@ -90,5 +90,12 @@ const Card = ({ children, style = {} }) => (
 export default function Analytics() {
   const [range, setRange]   = useState('30D');
   const [platTab, setPlatTab] = useState('All Platforms');
+
+  const pill = (active) => ({
+    padding: '7px 15px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+    background: active ? '#C05A38' : '#F0EBE3', color: active ? '#fff' : '#7A7068',
+    border: 'none', fontSize: 13, fontWeight: active ? 600 : 400, transition: 'all 150ms',
+  });
+
   return null;
 }
