@@ -28,6 +28,7 @@ function App() {
         <Route path="/strategy" element={<Layout><Strategy /></Layout>} />
         <Route path="/schedule" element={<Layout><Schedule /></Layout>} />
         <Route path="/chat" element={<Layout><Chat /></Layout>} />
+        <Route path="/profile" element={<Layout><Settings /></Layout>} />
         <Route path="/settings" element={<Layout><Settings /></Layout>} />
 
         {/* Global Redirects */}
