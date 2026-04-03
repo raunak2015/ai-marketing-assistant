@@ -98,7 +98,14 @@ export default function Analytics() {
   });
 
   return (
-    <div className="an-root">
+    <div className="an-root" style={{ width: '100%', padding: '20px', backgroundColor: '#F8F5F0', minHeight: '100vh', boxSizing: 'border-box' }}>
+      <style>{`
+        .an-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .chart-row { display: flex; gap: 24px; flex-wrap: wrap; }
+        .an-stats-row { display: flex; gap: 24px; flex-wrap: wrap; }
+        @media (max-width: 1200px) { .chart-row, .an-stats-row { flex-direction: column; } .an-stats-row > div { flex: 1 !important; } }
+      `}</style>
+
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
         <div>
@@ -132,7 +139,7 @@ export default function Analytics() {
       <div className="an-main-suite" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
         {/* ROW 1: PRIMARY CHARTS (Side-by-Side) */}
         <div className="chart-row">
-          <Card style={{ flex: 1, padding: '24px' }}>
+          <Card style={{ flex: 1, minWidth: '400px', padding: '24px' }}>
             <div style={{ marginBottom: 20 }}>
               <h3 style={{ fontSize: 18, fontWeight: 800, color: '#2B2218', margin: '0 0 4px' }}>Impressions Over Time</h3>
               <p style={{ fontSize: 13, color: '#7A7068', margin: 0 }}>Views across all selected channels (Last 30 days)</p>
@@ -151,7 +158,7 @@ export default function Analytics() {
             </div>
           </Card>
 
-          <Card style={{ flex: 1, padding: '24px' }}>
+          <Card style={{ flex: 1, minWidth: '400px', padding: '24px' }}>
             <div style={{ marginBottom: 20 }}>
               <h3 style={{ fontSize: 18, fontWeight: 800, color: '#2B2218', margin: '0 0 4px' }}>Follower Growth</h3>
               <p style={{ fontSize: 13, color: '#7A7068', margin: 0 }}>Net new audience (Last 6 months)</p>
