@@ -156,6 +156,12 @@ export default function Analytics() {
               <h3 style={{ fontSize: 18, fontWeight: 800, color: '#2B2218', margin: '0 0 4px' }}>Follower Growth</h3>
               <p style={{ fontSize: 13, color: '#7A7068', margin: 0 }}>Net new audience (Last 6 months)</p>
             </div>
+            <div style={{ height: 260 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={followerData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </Card>
         </div>
       </div>
