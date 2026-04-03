@@ -28,12 +28,12 @@ const initialMessages = [
   },
   {
     id: 2, role: 'user',
-    text: "What's trending on TikTok right now?",
+    text: "What's trending on Instagram right now?",
   },
   {
     id: 3, role: 'ai',
-    text: "Based on real-time data, here are today's top TikTok trends:",
-    hashtags: ['🔥 #CreatorEconomy', '🔥 #AIContent', '#ViralDance2025', '#BehindTheScenes', '#MarketingTips'],
+    text: "Based on real-time data, here are today's top Instagram trends:",
+    hashtags: ['🔥 #AIGrowth', '🔥 #CreatorStrategy', '#ReelTips', '#BehindTheScenes', '#Marketing2025'],
   },
 ];
 
@@ -135,7 +135,7 @@ export default function Chat() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs" style={{ color: '#7A7068' }}>Platform</span>
-                <span className="pill text-[11px]" style={{ background: '#C05A38', color: 'white', padding:'2px 10px' }}>TikTok</span>
+                <span className="pill text-[11px]" style={{ background: '#C05A38', color: 'white', padding:'2px 10px' }}>Instagram</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs" style={{ color: '#7A7068' }}>Topic</span>

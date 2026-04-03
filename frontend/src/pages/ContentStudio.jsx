@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Sparkles, Copy, RefreshCw, Video, Hash, MessageSquareText, Image as ImageIcon, Send } from 'lucide-react';
 
-const PLATFORMS = ['Instagram', 'TikTok', 'YouTube', 'LinkedIn', 'X'];
+const PLATFORMS = ['Instagram', 'YouTube', 'LinkedIn', 'Twitter'];
 const GOALS = ['Engagement', 'Conversion', 'Education', 'Viral Reach', 'Brand Awareness'];
 
 const Card = ({ children, style = {} }) => (
@@ -23,11 +23,11 @@ const pill = (active, accent = '#C05A38') => ({
 
 export default function ContentStudio() {
   const [platform, setPlatform] = useState('Instagram');
-  const [goal, setGoal]         = useState('Viral Reach');
-  const [topic, setTopic]       = useState('');
-  const [loading, setLoading]   = useState(false);
-  const [output, setOutput]     = useState(null);
-  const [copied, setCopied]     = useState(null);
+  const [goal, setGoal] = useState('Viral Reach');
+  const [topic, setTopic] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [output, setOutput] = useState(null);
+  const [copied, setCopied] = useState(null);
 
   const generate = () => {
     if (!topic.trim()) return;
@@ -119,8 +119,8 @@ export default function ContentStudio() {
               justifyContent: 'center', gap: 8, transition: 'background 150ms',
             }}>
             {loading
-              ? <><RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }}/> Generating…</>
-              : <><Sparkles size={16}/> Optimize Content</>
+              ? <><RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} /> Generating…</>
+              : <><Sparkles size={16} /> Optimize Content</>
             }
           </button>
         </Card>
@@ -133,7 +133,7 @@ export default function ContentStudio() {
               <Card>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Video size={16} style={{ color: '#C05A38' }}/>
+                    <Video size={16} style={{ color: '#C05A38' }} />
                     <h2 style={{ fontSize: 15, fontWeight: 700, color: '#2B2218', margin: 0 }}>Viral Hooks</h2>
                   </div>
                   <button onClick={generate} style={{ fontSize: 12, fontWeight: 600, color: '#C05A38', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -151,7 +151,7 @@ export default function ContentStudio() {
                       <p style={{ fontSize: 13, color: '#2B2218', margin: 0, lineHeight: 1.6, flex: 1 }}>{hook}</p>
                       <button onClick={() => copy(hook, `hook-${i}`)}
                         style={{ background: '#fff', border: '1px solid #E8E0D4', borderRadius: 8, padding: '6px 8px', cursor: 'pointer', flexShrink: 0 }}>
-                        <Copy size={13} style={{ color: copied === `hook-${i}` ? '#7A9A6E' : '#7A7068' }}/>
+                        <Copy size={13} style={{ color: copied === `hook-${i}` ? '#7A9A6E' : '#7A7068' }} />
                       </button>
                     </div>
                   ))}
@@ -161,7 +161,7 @@ export default function ContentStudio() {
               {/* Captions */}
               <Card>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                  <MessageSquareText size={16} style={{ color: '#C9A96E' }}/>
+                  <MessageSquareText size={16} style={{ color: '#C9A96E' }} />
                   <h2 style={{ fontSize: 15, fontWeight: 700, color: '#2B2218', margin: 0 }}>Optimized Captions</h2>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -170,7 +170,7 @@ export default function ContentStudio() {
                       <p style={{ fontSize: 13, color: '#2B2218', margin: 0, lineHeight: 1.7, whiteSpace: 'pre-wrap', paddingRight: 36 }}>{cap}</p>
                       <button onClick={() => copy(cap, `cap-${i}`)}
                         style={{ position: 'absolute', top: 12, right: 12, background: '#fff', border: '1px solid #E8E0D4', borderRadius: 8, padding: '6px 8px', cursor: 'pointer' }}>
-                        <Copy size={13} style={{ color: copied === `cap-${i}` ? '#7A9A6E' : '#7A7068' }}/>
+                        <Copy size={13} style={{ color: copied === `cap-${i}` ? '#7A9A6E' : '#7A7068' }} />
                       </button>
                     </div>
                   ))}
@@ -180,7 +180,7 @@ export default function ContentStudio() {
               {/* Hashtags */}
               <Card>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                  <Hash size={16} style={{ color: '#7A9A6E' }}/>
+                  <Hash size={16} style={{ color: '#7A9A6E' }} />
                   <h2 style={{ fontSize: 15, fontWeight: 700, color: '#2B2218', margin: 0 }}>Trending Hashtags</h2>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -206,7 +206,7 @@ export default function ContentStudio() {
               background: '#FAF9F6',
             }}>
               <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#F0EBE3', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
-                <Sparkles size={28} style={{ color: '#C05A38' }}/>
+                <Sparkles size={28} style={{ color: '#C05A38' }} />
               </div>
               <h2 style={{ fontSize: 19, fontWeight: 800, color: '#2B2218', margin: '0 0 10px' }}>Generate Your Viral Content</h2>
               <p style={{ fontSize: 14, color: '#7A7068', lineHeight: 1.6, margin: 0, maxWidth: 340 }}>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Leaf, Upload, Sparkles, ArrowUp } from 'lucide-react';
 
-const platforms = ['Instagram', 'YouTube', 'TikTok', 'LinkedIn', 'X'];
+const platforms = ['Instagram', 'YouTube', 'LinkedIn', 'Twitter'];
 const contentTypes = ['Caption', 'Reel/Short', 'Thumbnail', 'Post Idea', 'Script'];
 const suggestions = [
   { text: 'Add a compelling hook in the first 3 seconds to boost watch time.', impact: 'High Impact' },

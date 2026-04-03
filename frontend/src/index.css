@@ -45,6 +45,12 @@ body {
   font-variant-numeric: tabular-nums lining-nums;
 }
 
+/* Remove default focus outline on charts */
+.recharts-wrapper,
+.recharts-surface {
+  outline: none !important;
+}
+
 /* Botanical SVG decorations */
 .botanical-tr {
   position: absolute;

@@ -73,7 +73,7 @@ const Card = ({ children, style = {} }) => (
 );
 
 /* ─── Platform pills data ─── */
-const PLATFORMS = ['Instagram','YouTube','TikTok','LinkedIn','X'];
+const PLATFORMS = ['Instagram','YouTube','LinkedIn','Twitter'];
 const CONTENT_TYPES = ['Caption','Reel/Short','Thumbnail','Post Idea','Script'];
 
 const suggestions = [

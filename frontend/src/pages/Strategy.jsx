@@ -15,23 +15,20 @@ const heatColor = v =>
 
 const weeklyPlan = [
   { action: 'Post "5 AI Tools That Saved Me 10hrs" Reel on Instagram', platform: 'Instagram', priority: 'High' },
-  { action: 'Go live on TikTok at 7PM with behind-the-scenes tour',    platform: 'TikTok',    priority: 'High' },
   { action: 'Publish LinkedIn carousel on content strategy trends',     platform: 'LinkedIn',  priority: 'Medium' },
   { action: 'Repurpose top Reel as YouTube Short',                      platform: 'YouTube',   priority: 'Medium' },
-  { action: 'Tweet thread on AI marketing insights (15 tweets)',        platform: 'X',         priority: 'High' },
+  { action: 'Tweet thread on AI marketing insights (15 tweets)',        platform: 'Twitter',         priority: 'High' },
 ];
 
 const formats = [
   { platform: 'Instagram', color: '#C05A38', format: '15–30s Reels',      reason: 'Algorithm currently prioritizes short video content' },
-  { platform: 'TikTok',    color: '#7A9A6E', format: 'Stitch & Duets',    reason: 'Viral multiplier through community engagement'      },
   { platform: 'YouTube',   color: '#506B40', format: 'YouTube Shorts',    reason: 'Shorts feed prioritized in Q2 2025'                 },
   { platform: 'LinkedIn',  color: '#C9A96E', format: 'Document Carousels',reason: '5.7× more reach than standard text posts'           },
-  { platform: 'X',         color: '#3A3028', format: 'Tweet Threads',     reason: 'Highest retweet rate of any X format'               },
+  { platform: 'Twitter',   color: '#3A3028', format: 'Tweet Threads',     reason: 'Highest retweet rate of any Twitter format'               },
 ];
 
 const flowSteps = [
-  { platform: 'TikTok',    color: '#7A9A6E', action: 'Create on TikTok',          timing: 'Day 1' },
-  { platform: 'Instagram', color: '#C05A38', action: 'Repost on Instagram Reels', timing: 'Day 1' },
+  { platform: 'Instagram', color: '#C05A38', action: 'Create on Instagram Reels', timing: 'Day 1' },
   { platform: 'YouTube',   color: '#506B40', action: 'Clip for YouTube Shorts',   timing: 'Day 2' },
   { platform: 'LinkedIn',  color: '#C9A96E', action: 'Post on LinkedIn',          timing: 'Day 3' },
 ];
@@ -92,7 +89,7 @@ export default function Strategy() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
             <h2 style={{ fontSize: 15, fontWeight: 700, color: '#2B2218', margin: 0 }}>Best Posting Windows</h2>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {['Instagram','YouTube','TikTok','LinkedIn'].map(p => (
+              {['Instagram','YouTube','LinkedIn','Twitter'].map(p => (
                 <button key={p} style={pill(platFilter === p)} onClick={() => setPlatFilter(p)}>{p}</button>
               ))}
             </div>

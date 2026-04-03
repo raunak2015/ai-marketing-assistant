@@ -47,7 +47,7 @@ const AppleIcon = () => (
 );
 
 const roles = ['Creator', 'Startup', 'Business', 'Marketing Agency'];
-const connectable = ['Instagram', 'YouTube', 'TikTok', 'LinkedIn', 'X', 'Facebook'];
+const connectable = ['Instagram', 'YouTube', 'LinkedIn', 'Twitter', 'Facebook'];
 
 export default function Login() {
   const navigate = useNavigate();
@@ -310,7 +310,7 @@ export default function Login() {
               <div style={{ marginBottom: 24 }}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: '#7A7068', letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>PRIMARY PLATFORM</label>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {['Instagram','TikTok','YouTube','LinkedIn','X'].map(p => (
+                  {['Instagram','YouTube','LinkedIn','Twitter'].map(p => (
                     <button key={p} style={{ padding: '6px 14px', borderRadius: 999, fontSize: 12, fontWeight: 500, background: '#E8E0D4', color: '#7A7068', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>{p}</button>
                   ))}
                 </div>
