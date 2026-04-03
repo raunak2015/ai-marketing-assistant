@@ -67,3 +67,12 @@ const algoMetrics = [
   { label: 'Share Rate',           score: 71 },
   { label: 'CTR',                  score: 55 },
 ];
+
+const platColor = { 
+  TikTok:    { bg:'#E6F0E6', text:'#506B40' },
+  Instagram: { bg:'#FEE8DC', text:'#C05A38' },
+  LinkedIn:  { bg:'#FEF8E2', text:'#A87B00' },
+  YouTube:   { bg:'#FEF0EA', text:'#A8442A' },
+  Twitter:   { bg:'#FEF8E2', text:'#8A7A5A' },
+  X:         { bg:'#FEF8E2', text:'#8A7A5A' }
+};
