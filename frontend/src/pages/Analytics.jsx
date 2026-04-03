@@ -43,3 +43,11 @@ const followerData = [
   { month: 'May', followers: 30000 },
   { month: 'Jun', followers: 39000 },
 ];
+
+const donut = [
+  { name: 'Instagram', value: 35, color: '#C05A38' },
+  { name: 'TikTok',    value: 28, color: '#7A9A6E' },
+  { name: 'YouTube',   value: 18, color: '#506B40' },
+  { name: 'LinkedIn',  value: 12, color: '#C9A96E' },
+  { name: 'X',         value: 7,  color: '#3A3028' },
+];
