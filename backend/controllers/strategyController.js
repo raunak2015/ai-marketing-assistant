@@ -1,4 +1,5 @@
-﻿const axios = require('axios');
+const axios = require('axios');
+const geminiService = require('../services/geminiService');
 
 exports.getBestTimes = async (req, res) => {
   try {
@@ -35,4 +36,19 @@ exports.getFormats = (req, res) => {
       { platform: 'Twitter', format: 'Tweet Threads', reason: 'Highest retweet rate', priority: 'Medium' }
     ]
   });
+};
+
+exports.generateStrategy = async (req, res) => {
+  try {
+    const { niche, goals, platforms } = req.body;
+    const strategy = await geminiService.generateWeeklyStrategy(
+      niche || 'Digital Marketing', 
+      goals || 'Viral growth', 
+      platforms || ['Instagram', 'YouTube']
+    );
+    res.json({ success: true, data: strategy });
+  } catch (error) {
+    console.error('Strategy Controller Error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to generate strategy' });
+  }
 };
