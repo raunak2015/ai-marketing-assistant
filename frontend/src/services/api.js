@@ -30,27 +30,27 @@ export const api = {
 
   // YouTube
   getYouTubeTrending: async () => {
-    const res = await fetch(`${API_BASE_URL}/youtube/trending`);
+    const res = await fetch(`${API_BASE_URL}/youtube/trending`, { headers: authHeaders() });
     return res.json();
   },
   // Twitter
   getTwitterTrending: async () => {
-    const res = await fetch(`${API_BASE_URL}/twitter/trending`);
+    const res = await fetch(`${API_BASE_URL}/twitter/trending`, { headers: authHeaders() });
     return res.json();
   },
   // Instagram (mock)
   getInstagramTrending: async () => {
-    const res = await fetch(`${API_BASE_URL}/instagram/trending`);
+    const res = await fetch(`${API_BASE_URL}/instagram/trending`, { headers: authHeaders() });
     return res.json();
   },
   // LinkedIn (mock)
   getLinkedInTrending: async () => {
-    const res = await fetch(`${API_BASE_URL}/linkedin/trending`);
+    const res = await fetch(`${API_BASE_URL}/linkedin/trending`, { headers: authHeaders() });
     return res.json();
   },
   // TikTok (mock)
   getTikTokTrending: async () => {
-    const res = await fetch(`${API_BASE_URL}/tiktok/trending`);
+    const res = await fetch(`${API_BASE_URL}/tiktok/trending`, { headers: authHeaders() });
     return res.json();
   },
   // Analytics
