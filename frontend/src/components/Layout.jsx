@@ -105,20 +105,6 @@ export default function Layout({ children }) {
 
         {/* Right actions — hidden on mobile */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }} className="desktop-actions">
-          {/* Automation */}
-          <button style={{
-            padding: '8px 18px', borderRadius: 999,
-            background: '#C05A38', color: '#fff', border: 'none',
-            fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6,
-            transition: 'background 150ms',
-            boxShadow: '0 4px 12px rgba(192,90,56,0.2)',
-          }}
-            onMouseEnter={e => e.currentTarget.style.background = '#A8442A'}
-            onMouseLeave={e => e.currentTarget.style.background = '#C05A38'}>
-            <Zap size={14}/> Automation
-          </button>
-
           {/* Bell */}
           <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A7068', padding: 6, display: 'flex', alignItems: 'center', borderRadius: '50%', transition: 'background 150ms' }}
             onMouseEnter={e => e.currentTarget.style.background = '#E8E0D4'}

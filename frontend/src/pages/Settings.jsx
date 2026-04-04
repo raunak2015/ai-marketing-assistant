@@ -5,12 +5,13 @@ import {
   Camera, Check, LogOut, ChevronRight, ArrowUpRight, 
   ArrowDownRight, Star, Crown, Globe, Monitor, Smartphone, 
   Download, Trash2, Eye, EyeOff, Plus, Play, Info, Leaf, Sparkles,
-  RefreshCw, Map
+  RefreshCw, Map, X, Loader2, ExternalLink
 } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, 
   ResponsiveContainer 
 } from 'recharts';
+import api from '../services/api';
 
 /* ─── CUSTOM SOCIAL ICONS ─── */
 const Instagram = ({ size = 24, ...props }) => (
@@ -84,10 +85,10 @@ const NICHES = [
 ];
 
 const SOCIALS = [
-  { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#C05A38', handle: '@pritesh_cg', status: 'Connected', lastSync: '5 min ago' },
-  { id: 'youtube', name: 'YouTube', icon: Youtube, color: '#C9A96E', handle: 'Pritesh Sharma', status: 'Connected', lastSync: '12 min ago' },
-  { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, color: '#506B40', handle: 'Not connected', status: 'Not Connected', lastSync: null },
-  { id: 'twitter', name: 'Twitter / X', icon: Twitter, color: '#7A7068', handle: 'Not connected', status: 'Not Connected', lastSync: null },
+  { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E4405F', handle: '@pritesh_cg', status: 'Connected', lastSync: '5 min ago' },
+  { id: 'youtube', name: 'YouTube', icon: Youtube, color: '#FF0000', handle: 'Pritesh Sharma', status: 'Connected', lastSync: '12 min ago' },
+  { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, color: '#0A66C2', handle: 'Not connected', status: 'Not Connected', lastSync: null },
+  { id: 'twitter', name: 'Twitter / X', icon: Twitter, color: '#000000', handle: 'Not connected', status: 'Not Connected', lastSync: null },
 ];
 
 const ANALYTICS_STATS = [
@@ -283,52 +284,269 @@ const PersonalInfo = ({ userData }) => {
   );
 };
 
-const ConnectedAccounts = () => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-    {SOCIALS.map((s, idx) => (
-      <div key={s.id} style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '16px 0', borderBottom: idx < SOCIALS.length - 1 ? `1px solid ${COLORS.divider}` : 'none'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 48, height: 48, borderRadius: '50%', background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-            <s.icon size={22}/>
-          </div>
-          <div>
-            <h4 style={{ margin: '0 0 2px', fontSize: 15, fontWeight: 700, color: COLORS.text }}>{s.name}</h4>
-            <p style={{ margin: 0, fontSize: 13, color: COLORS.muted }}>{s.handle}</p>
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <div style={{ textAlign: 'right' }}>
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '4px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700,
-              background: s.status === 'Connected' ? '#E8F4EE' : COLORS.chip,
-              color: s.status === 'Connected' ? COLORS.positive : COLORS.muted
-            }}>
-              {s.status === 'Connected' && '✓ '} {s.status}
-            </span>
-            {s.lastSync && <p style={{ margin: '4px 0 0', fontSize: 10, color: COLORS.faint }}>Last synced: {s.lastSync}</p>}
-          </div>
-          <button style={{
-            padding: '8px 20px', borderRadius: 999, border: s.status === 'Connected' ? 'none' : 'none',
-            background: s.status === 'Connected' ? 'transparent' : COLORS.primary,
-            color: s.status === 'Connected' ? COLORS.primary : 'white',
-            fontSize: 13, fontWeight: 700, cursor: 'pointer'
-          }}>
-            {s.status === 'Connected' ? 'Disconnect' : 'Connect'}
-          </button>
-        </div>
+const ConnectedAccounts = ({ userData }) => {
+  const [connectedPlatforms, setConnectedPlatforms] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [connectingPlatform, setConnectingPlatform] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalPlatform, setModalPlatform] = useState(null);
+  const [handle, setHandle] = useState('');
+
+  useEffect(() => {
+    fetchConnectedPlatforms();
+  }, []);
+
+  const fetchConnectedPlatforms = async () => {
+    try {
+      const result = await api.getConnectedPlatforms();
+      if (result.success) {
+        setConnectedPlatforms(result.data);
+      }
+    } catch (error) {
+      console.error('Error fetching platforms:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConnect = (platform) => {
+    const social = SOCIALS.find(s => s.id === platform);
+    setModalPlatform(social);
+    setShowModal(true);
+    setHandle('');
+  };
+
+  const handleDisconnect = async (platform) => {
+    setConnectingPlatform(platform);
+    try {
+      await api.disconnectPlatform(platform);
+      await fetchConnectedPlatforms();
+    } catch (error) {
+      console.error('Error disconnecting:', error);
+    } finally {
+      setConnectingPlatform(null);
+    }
+  };
+
+  const handleConnectSubmit = async () => {
+    if (!modalPlatform) return;
+    setConnectingPlatform(modalPlatform.id);
+    
+    try {
+      const result = await api.connectPlatform(modalPlatform.id, handle);
+      if (result.success) {
+        setShowModal(false);
+        await fetchConnectedPlatforms();
+      }
+    } catch (error) {
+      console.error('Error connecting:', error);
+    } finally {
+      setConnectingPlatform(null);
+    }
+  };
+
+  const formatLastSync = (lastSync) => {
+    if (!lastSync) return null;
+    const date = new Date(lastSync);
+    const now = new Date();
+    const diff = Math.floor((now - date) / 60000);
+    if (diff < 1) return 'Just now';
+    if (diff < 60) return `${diff} min ago`;
+    if (diff < 1440) return `${Math.floor(diff / 60)} hours ago`;
+    return date.toLocaleDateString();
+  };
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 0' }}>
+        <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: COLORS.primary }}/>
       </div>
-    ))}
-    <div style={{ marginTop: 12 }}>
-      <button style={{ background: 'none', border: 'none', color: COLORS.muted, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-        Why connect accounts? <ChevronRight size={14}/>
-      </button>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {SOCIALS.map((s, idx) => {
+        const platformData = connectedPlatforms[s.id] || {};
+        const isConnected = platformData.connected;
+        const isConnecting = connectingPlatform === s.id;
+        const platformHandle = platformData.handle || s.handle;
+
+        return (
+          <div key={s.id} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '16px 0', borderBottom: idx < SOCIALS.length - 1 ? `1px solid ${COLORS.divider}` : 'none'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ 
+                width: 48, height: 48, borderRadius: '50%', 
+                background: isConnected ? s.color : COLORS.chip,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                color: isConnected ? 'white' : COLORS.muted,
+                transition: 'all 200ms'
+              }}>
+                <s.icon size={22}/>
+              </div>
+              <div>
+                <h4 style={{ margin: '0 0 2px', fontSize: 15, fontWeight: 700, color: COLORS.text }}>{s.name}</h4>
+                <p style={{ margin: 0, fontSize: 13, color: COLORS.muted }}>{platformHandle}</p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+              <div style={{ textAlign: 'right' }}>
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '4px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700,
+                  background: isConnected ? '#E8F4EE' : COLORS.chip,
+                  color: isConnected ? COLORS.positive : COLORS.muted,
+                  transition: 'all 200ms'
+                }}>
+                  {isConnected && <Check size={12}/>} {isConnected ? 'Connected' : 'Not Connected'}
+                </span>
+                {isConnected && platformData.lastSync && (
+                  <p style={{ margin: '4px 0 0', fontSize: 10, color: COLORS.faint }}>Last synced: {formatLastSync(platformData.lastSync)}</p>
+                )}
+              </div>
+              <button
+                onClick={() => isConnected ? handleDisconnect(s.id) : handleConnect(s.id)}
+                disabled={isConnecting}
+                style={{
+                  padding: '8px 20px', borderRadius: 999, border: 'none',
+                  background: isConnected ? 'transparent' : COLORS.primary,
+                  color: isConnected ? COLORS.primary : 'white',
+                  fontSize: 13, fontWeight: 700, cursor: isConnecting ? 'wait' : 'pointer',
+                  opacity: isConnecting ? 0.7 : 1,
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  transition: 'all 200ms'
+                }}
+              >
+                {isConnecting ? (
+                  <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }}/> {isConnected ? 'Disconnecting...' : 'Connecting...'}</>
+                ) : (
+                  isConnected ? 'Disconnect' : 'Connect'
+                )}
+              </button>
+            </div>
+          </div>
+        );
+      })}
+      
+      <div style={{ marginTop: 12 }}>
+        <button style={{ background: 'none', border: 'none', color: COLORS.muted, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+          Why connect accounts? <ChevronRight size={14}/>
+        </button>
+      </div>
+
+      {/* Connect Platform Modal */}
+      {showModal && modalPlatform && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(43,34,24,0.5)', zIndex: 1000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+          animation: 'fadeIn 0.2s ease'
+        }}>
+          <div style={{
+            background: '#FAF9F6', borderRadius: 20, maxWidth: 440, width: '100%',
+            boxShadow: '0 20px 60px rgba(43,34,24,0.3)', overflow: 'hidden'
+          }}>
+            {/* Header */}
+            <div style={{ padding: '24px 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ 
+                  width: 44, height: 44, borderRadius: 12, 
+                  background: modalPlatform.color,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                  color: 'white' 
+                }}>
+                  <modalPlatform.icon size={22}/>
+                </div>
+                <div>
+                  <h2 style={{ fontSize: 18, fontWeight: 800, color: '#2B2218', margin: 0 }}>Connect {modalPlatform.name}</h2>
+                  <p style={{ fontSize: 13, color: '#7A7068', margin: '4px 0 0' }}>Link your account for analytics</p>
+                </div>
+              </div>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+                <X size={20} color="#7A7068" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div style={{ padding: 24 }}>
+              <div style={{ background: '#F5F2EE', borderRadius: 12, padding: 16, marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                  <Info size={18} color={COLORS.muted} style={{ flexShrink: 0, marginTop: 2 }}/>
+                  <div>
+                    <p style={{ fontSize: 13, color: '#7A7068', margin: 0, lineHeight: 1.6 }}>
+                      Connecting your {modalPlatform.name} account allows us to fetch real-time analytics, trending data, and provide AI-powered insights for your content.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: COLORS.text, marginBottom: 8 }}>
+                  {modalPlatform.name} Username or Handle
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <span style={{
+                    position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
+                    color: COLORS.muted, fontSize: 14
+                  }}>@</span>
+                  <input
+                    type="text"
+                    value={handle}
+                    onChange={(e) => setHandle(e.target.value)}
+                    placeholder={`your_${modalPlatform.id}_handle`}
+                    style={{
+                      width: '100%', padding: '12px 16px 12px 32px',
+                      borderRadius: 12, border: `1px solid ${COLORS.divider}`,
+                      background: COLORS.chip, color: COLORS.text, fontSize: 14,
+                      fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box'
+                    }}
+                    onFocus={(e) => { e.target.style.background = '#FAF7F2'; e.target.style.border = `2px solid ${modalPlatform.color}`; }}
+                    onBlur={(e) => { e.target.style.background = COLORS.chip; e.target.style.border = `1px solid ${COLORS.divider}`; }}
+                  />
+                </div>
+                <p style={{ fontSize: 11, color: COLORS.faint, margin: '8px 0 0' }}>
+                  Enter your {modalPlatform.name} username without the @ symbol
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button
+                  onClick={() => setShowModal(false)}
+                  style={{
+                    flex: 1, padding: '12px', borderRadius: 999, border: `1.5px solid ${COLORS.divider}`,
+                    background: 'white', color: COLORS.text, fontSize: 14, fontWeight: 600,
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConnectSubmit}
+                  disabled={connectingPlatform === modalPlatform.id}
+                  style={{
+                    flex: 1, padding: '12px', borderRadius: 999, border: 'none',
+                    background: COLORS.primary, color: 'white', fontSize: 14, fontWeight: 700,
+                    cursor: connectingPlatform === modalPlatform.id ? 'wait' : 'pointer',
+                    fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    opacity: connectingPlatform === modalPlatform.id ? 0.7 : 1,
+                  }}
+                >
+                  {connectingPlatform === modalPlatform.id ? (
+                    <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }}/> Connecting...</>
+                  ) : (
+                    <>Connect <ExternalLink size={14}/></>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 const AnalyticsSummary = () => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -866,7 +1084,7 @@ export default function Settings() {
           )}
           {activeSection === 'Connected Accounts' && (
             <SectionCard title="Connected Social Accounts" subtitle="Link platforms to unlock real-time analytics">
-              <ConnectedAccounts />
+              <ConnectedAccounts userData={userData} />
             </SectionCard>
           )}
           {activeSection === 'My Analytics Summary' && (
@@ -938,6 +1156,10 @@ export default function Settings() {
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(4px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
 
         .avatar-container:hover .avatar-hover-overlay {

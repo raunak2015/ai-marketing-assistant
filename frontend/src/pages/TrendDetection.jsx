@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, RefreshCw, TrendingUp, Filter, Globe } from 'lucide-react';
+import { Search, RefreshCw, TrendingUp, Filter, Globe, X, Sparkles, Clock, Target, CheckCircle, Copy, Zap } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import api from '../services/api';
 
@@ -99,8 +99,317 @@ const STATUS_STYLE = {
   new:    { bg:'#FEF8E2', color:'#A87B00' },
 };
 
-/* ─── Trend Card (unchanged) ─── */
-const TrendCard = ({ trend }) => {
+/* ─── Content Creation Modal ─── */
+const ContentCreationModal = ({ trend, onClose }) => {
+  const [generating, setGenerating] = useState(false);
+  const [contentGuide, setContentGuide] = useState(null);
+
+  const platformConfig = {
+    instagram: { color: '#C05A38', bg: '#FEF0EA', name: 'Instagram', format: 'Reels, Carousel, Stories' },
+    youtube: { color: '#A8442A', bg: '#FEF0EA', name: 'YouTube', format: 'Shorts, Long-form Videos' },
+    linkedin: { color: '#506B40', bg: '#E4EBDF', name: 'LinkedIn', format: 'Articles, Posts, Documents' },
+    twitter: { color: '#2B2218', bg: '#F0EBE3', name: 'Twitter', format: 'Tweets, Threads' },
+  };
+
+  const config = platformConfig[trend.platform] || platformConfig.instagram;
+
+  const generateContentGuide = () => {
+    setGenerating(true);
+    setTimeout(() => {
+      const guide = generateContentForTrend(trend);
+      setContentGuide(guide);
+      setGenerating(false);
+    }, 1500);
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  if (!contentGuide) {
+    return (
+      <div style={{
+        position: 'fixed', inset: 0, background: 'rgba(43,34,24,0.5)', zIndex: 1000,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+        animation: 'fadeIn 0.2s ease'
+      }}>
+        <div style={{
+          background: '#FAF9F6', borderRadius: 20, maxWidth: 500, width: '100%',
+          maxHeight: '90vh', overflow: 'auto', boxShadow: '0 20px 60px rgba(43,34,24,0.3)'
+        }}>
+          <div style={{ padding: '24px 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: config.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Sparkles size={22} color={config.color} />
+              </div>
+              <div>
+                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#2B2218', margin: 0 }}>Create Content</h2>
+                <p style={{ fontSize: 13, color: '#7A7068', margin: '4px 0 0' }}>For: {trend.title}</p>
+              </div>
+            </div>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+              <X size={20} color="#7A7068" />
+            </button>
+          </div>
+
+          <div style={{ padding: 20 }}>
+            <div style={{ background: '#F5F2EE', borderRadius: 12, padding: 16, marginBottom: 20 }}>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 999, background: config.bg, color: config.color }}>
+                  {config.name}
+                </span>
+                <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 999, background: '#EAE4DC', color: '#7A7068' }}>
+                  {config.format}
+                </span>
+                <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 999, background: '#FEF0EA', color: '#C05A38' }}>
+                  {trend.spike} Growth
+                </span>
+              </div>
+              <p style={{ fontSize: 13, color: '#2B2218', margin: 0, lineHeight: 1.6 }}>
+                Create engaging content around "<strong>{trend.title}</strong>" to capitalize on this trending topic.
+              </p>
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: '#2B2218', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Target size={16} color="#C05A38" /> What You Need
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {getRequirements(trend).map((req, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#C05A38', flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, color: '#7A7068' }}>{req}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={generateContentGuide}
+              disabled={generating}
+              style={{
+                width: '100%', padding: '14px', borderRadius: 999, border: 'none',
+                background: generating ? '#DDD6CA' : '#C05A38', color: '#fff',
+                fontSize: 14, fontWeight: 700, cursor: generating ? 'not-allowed' : 'pointer',
+                fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+            >
+              {generating ? (
+                <><svg style={{ animation: 'spin 1s linear infinite' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Generating Guide...</>
+              ) : (
+                <><Zap size={16} /> Generate Content Guide</>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(43,34,24,0.5)', zIndex: 1000,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+      animation: 'fadeIn 0.2s ease'
+    }}>
+      <div style={{
+        background: '#FAF9F6', borderRadius: 20, maxWidth: 600, width: '100%',
+        maxHeight: '90vh', overflow: 'auto', boxShadow: '0 20px 60px rgba(43,34,24,0.3)'
+      }}>
+        <div style={{ padding: '24px 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'sticky', top: 0, background: '#FAF9F6' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: config.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Sparkles size={22} color={config.color} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: '#2B2218', margin: 0 }}>Content Guide</h2>
+              <p style={{ fontSize: 13, color: '#7A7068', margin: '4px 0 0' }}>{trend.title}</p>
+            </div>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+            <X size={20} color="#7A7068" />
+          </button>
+        </div>
+
+        <div style={{ padding: 20 }}>
+          {/* Summary */}
+          <div style={{ background: '#F5F2EE', borderRadius: 12, padding: 16, marginBottom: 16 }}>
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: '#2B2218', margin: '0 0 8px' }}>Summary</h3>
+            <p style={{ fontSize: 13, color: '#7A7068', margin: 0, lineHeight: 1.6 }}>{contentGuide.summary}</p>
+          </div>
+
+          {/* Steps to Create */}
+          <div style={{ marginBottom: 16 }}>
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: '#2B2218', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <CheckCircle size={16} color="#7A9A6E" /> How to Create
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {contentGuide.steps.map((step, i) => (
+                <div key={i} style={{ display: 'flex', gap: 12 }}>
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#C05A38', color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    {i + 1}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: '#2B2218', margin: '0 0 4px' }}>{step.title}</p>
+                    <p style={{ fontSize: 12, color: '#7A7068', margin: 0, lineHeight: 1.5 }}>{step.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Requirements */}
+          <div style={{ background: '#FEF0EA', borderRadius: 12, padding: 16, marginBottom: 16 }}>
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: '#C05A38', margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Target size={16} /> Requirements Checklist
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {contentGuide.requirements.map((req, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 18, height: 18, borderRadius: 4, border: '2px solid #C05A38', flexShrink: 0 }} />
+                  <span style={{ fontSize: 12, color: '#2B2218' }}>{req}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Suggested Caption */}
+          <div style={{ background: '#F5F2EE', borderRadius: 12, padding: 16, marginBottom: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <h3 style={{ fontSize: 13, fontWeight: 700, color: '#2B2218', margin: 0 }}>Suggested Caption</h3>
+              <button onClick={() => copyToClipboard(contentGuide.caption)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: '#C05A38', fontSize: 12, fontWeight: 600 }}>
+                <Copy size={12} /> Copy
+              </button>
+            </div>
+            <p style={{ fontSize: 13, color: '#7A7068', margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>{contentGuide.caption}</p>
+          </div>
+
+          {/* Hashtags */}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20 }}>
+            {contentGuide.hashtags.map((tag, i) => (
+              <span key={i} style={{ fontSize: 12, padding: '4px 10px', borderRadius: 999, background: '#EAE4DC', color: '#7A7068', fontWeight: 500 }}>
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              onClick={() => { setContentGuide(null); }}
+              style={{
+                flex: 1, padding: '12px', borderRadius: 999, border: '1.5px solid #EAE4DC',
+                background: '#FAFAF8', color: '#2B2218', fontSize: 13, fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              Regenerate
+            </button>
+            <button
+              onClick={onClose}
+              style={{
+                flex: 1, padding: '12px', borderRadius: 999, border: 'none',
+                background: '#C05A38', color: '#fff', fontSize: 13, fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
+    </div>
+  );
+};
+
+/* ─── Generate content guide based on trend ─── */
+const generateContentForTrend = (trend) => {
+  const title = trend.title.toLowerCase();
+  
+  let summary = '';
+  let steps = [];
+  let requirements = [];
+  let caption = '';
+  let hashtags = trend.hashtags || [];
+
+  if (title.includes('ai') || title.includes('content') || title.includes('creation')) {
+    summary = `AI content creation is trending with ${trend.spike} growth. Create tutorial or demo content showing AI tools in action.`;
+    steps = [
+      { title: 'Start with a hook', description: 'Show an impressive AI-generated result in the first 3 seconds.' },
+      { title: 'Show the process', description: 'Demonstrate the AI tool workflow step by step.' },
+      { title: 'Add your unique insight', description: 'Share your tips or tricks that make your content stand out.' },
+      { title: 'End with CTA', description: 'Ask viewers to try it and share their results.' },
+    ];
+    requirements = ['AI tool access', 'Screen recording software', '15-60 second script', 'Trending audio'];
+    caption = `"This AI tool changed my content game completely 🚀\n\nHere's exactly how I use it to create viral content in minutes...\n\nSave this for later! ♻️\n\nWhat AI tool are you using? Drop it below 👇`;
+  } else if (title.includes('short') || title.includes('video') || title.includes('reels')) {
+    summary = `Short-form video content is dominating. Focus on high-energy hooks and value-packed content.`;
+    steps = [
+      { title: 'Hook in 1-2 seconds', description: 'Start with a bold statement or surprising fact.' },
+      { title: 'Provide value quickly', description: 'Deliver your main message within the first 10 seconds.' },
+      { title: 'Use trending audio', description: 'Add popular sounds to boost algorithmic reach.' },
+      { title: 'End with engagement', description: 'Ask a question or encourage comments.' },
+    ];
+    requirements = ['Vertical video (9:16)', 'Trending audio track', 'High-energy intro', 'Value proposition'];
+    caption = `Stop scrolling 📱\n\nHere's what nobody tells you about ${trend.title}...\n\n👇 Comment "GOT IT" if you learned something new`;
+  } else if (title.includes('coding') || title.includes('vibe') || title.includes('dev')) {
+    summary = `Developer content is trending. Share code snippets, project demos, or productivity tips.`;
+    steps = [
+      { title: 'Show working code', description: 'Display a real project or feature in action.' },
+      { title: 'Explain the logic', description: 'Break down the code in simple terms.' },
+      { title: 'Share your setup', description: 'Show your IDE, terminal, or workspace.' },
+      { title: 'Add resources', description: 'Link to documentation or GitHub repo.' },
+    ];
+    requirements = ['Code editor setup', 'Working code example', 'Clear audio narration', 'GitHub or demo link'];
+    caption = `Code that actually works 💻\n\nBuilding ${trend.title} was easier than I thought...\n\n🔔 Follow for more dev tips\n\n#coding #dev #programming`;
+  } else if (title.includes('workspace') || title.includes('setup') || title.includes('aesthetic')) {
+    summary = `Aesthetic workspace content resonates with aspirational audiences. Focus on visual appeal.`;
+    steps = [
+      { title: 'Set up the scene', description: 'Clean, well-lit workspace with pleasing aesthetics.' },
+      { title: 'Show the details', description: 'Zoom in on gadgets, organizers, or decor.' },
+      { title: 'Share your workflow', description: 'Explain how this setup improves productivity.' },
+      { title: 'Link products', description: 'Share Amazon links or product names.' },
+    ];
+    requirements = ['Good lighting setup', 'Camera with close-up lens', 'Neat desk organization', 'Product links ready'];
+    caption = `My dream workspace setup ✨\n\nEverything I use to stay productive (linked in bio)\n\nWhich item is your favorite? ⬇️`;
+  } else {
+    summary = `This topic is trending with ${trend.spike} growth. Create authentic, value-driven content.`;
+    steps = [
+      { title: 'Research the trend', description: 'Understand what makes this topic relevant right now.' },
+      { title: 'Add your perspective', description: 'Share a unique angle or personal experience.' },
+      { title: 'Be authentic', description: ' audiences connect with genuine voices.' },
+      { title: 'Engage with comments', description: 'Reply to comments to boost engagement.' },
+    ];
+    requirements = ['Topic research', 'Unique angle/perspective', 'Clear messaging', 'Engagement strategy'];
+    caption = `Thoughts on ${trend.title} 🤔\n\nHere's my take on why this matters...\n\nWhat's yours? Drop a comment 👇`;
+  }
+
+  // Add trend-specific hashtag if not present
+  if (!hashtags.includes(`#${trend.title.split(' ')[0].replace('#', '')}`)) {
+    hashtags = [`#${trend.title.split(' ')[0].replace('#', '')}`, ...hashtags];
+  }
+
+  return { summary, steps, requirements, caption, hashtags };
+};
+
+/* ─── Get requirements based on trend ─── */
+const getRequirements = (trend) => {
+  const platformReqs = {
+    instagram: ['High-quality images or video clips', 'Trending audio selection', 'Caption draft with hooks', 'Relevant hashtags list', 'Story/Reel format ready'],
+    youtube: ['HD video recording setup', 'Script or outline', 'Thumbnail design', 'SEO-optimized title', 'Description with timestamps'],
+    linkedin: ['Professional tone content', 'Industry insights', 'Engaging question', 'Company page consideration', 'Professional hashtags'],
+    twitter: ['Concise text (280 chars)', 'Engaging hook tweet', 'Relevant hashtags (1-2)', 'Media attachment', 'Thread structure if needed'],
+  };
+  return platformReqs[trend.platform] || platformReqs.instagram;
+};
+
+/* ─── Trend Card ─── */
+const TrendCard = ({ trend, onCreateContent }) => {
   const st = STATUS_STYLE[trend.status] || STATUS_STYLE.hot;
   return (
     <div style={{
@@ -145,12 +454,14 @@ const TrendCard = ({ trend }) => {
         ))}
       </div>
 
-      <button style={{
-        width:'100%', padding:'10px', borderRadius:10, border:'1.5px solid #EAE4DC',
-        background:'#FAFAF8', color:'#2B2218', fontSize:13, fontWeight:700,
-        cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:6,
-        transition:'all 150ms'
-      }}
+      <button
+        onClick={() => onCreateContent(trend)}
+        style={{
+          width:'100%', padding:'10px', borderRadius:10, border:'1.5px solid #EAE4DC',
+          background:'#FAFAF8', color:'#2B2218', fontSize:13, fontWeight:700,
+          cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:6,
+          transition:'all 150ms'
+        }}
         onMouseEnter={e => { e.currentTarget.style.background='#F0EBE3'; e.currentTarget.style.borderColor='#D29D8D'; }}
         onMouseLeave={e => { e.currentTarget.style.background='#FAFAF8'; e.currentTarget.style.borderColor='#EAE4DC'; }}
       >
@@ -168,6 +479,7 @@ export default function TrendDetection() {
   const [refreshing, setRefreshing] = useState(false);
   const [trends, setTrends] = useState(MOCK_TRENDS);
   const [loading, setLoading] = useState(false);
+  const [selectedTrend, setSelectedTrend] = useState(null);
 
   const fetchRealTrends = async () => {
     if (platform === 'youtube' || platform === 'all') {
@@ -223,6 +535,14 @@ export default function TrendDetection() {
   const doRefresh = () => {
     setRefreshing(true);
     fetchRealTrends().finally(() => setTimeout(() => setRefreshing(false), 900));
+  };
+
+  const handleCreateContent = (trend) => {
+    setSelectedTrend(trend);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedTrend(null);
   };
 
   return (
@@ -326,12 +646,18 @@ export default function TrendDetection() {
         </div>
       ) : (
         <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:16 }}>
-          {filtered.map(t => <TrendCard key={t.id} trend={t} />)}
+          {filtered.map(t => <TrendCard key={t.id} trend={t} onCreateContent={handleCreateContent} />)}
         </div>
+      )}
+
+      {/* Content Creation Modal */}
+      {selectedTrend && (
+        <ContentCreationModal trend={selectedTrend} onClose={handleCloseModal} />
       )}
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @media (max-width: 1100px) {
           div[style*="grid-template-columns: repeat(3, 1fr)"] { grid-template-columns: repeat(2, 1fr) !important; }
         }
