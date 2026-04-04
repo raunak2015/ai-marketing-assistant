@@ -1,5 +1,8 @@
-import { useState } from 'react';
-import { Sparkles, Copy, RefreshCw, Video, Hash, MessageSquareText, Image as ImageIcon, Send } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Sparkles, Copy, RefreshCw, Video, Hash, MessageSquareText, CheckCircle } from 'lucide-react';
+import api from '../services/api';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { ContentSkeleton } from '../components/SkeletonLoader';
 
 const PLATFORMS = ['Instagram', 'YouTube', 'LinkedIn', 'Twitter'];
 const GOALS = ['Engagement', 'Conversion', 'Education', 'Viral Reach', 'Brand Awareness'];
@@ -28,31 +31,104 @@ export default function ContentStudio() {
   const [loading, setLoading] = useState(false);
   const [output, setOutput] = useState(null);
   const [copied, setCopied] = useState(null);
+  const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
-  const generate = () => {
-    if (!topic.trim()) return;
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ctrl+Enter to generate content
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !loading && topic.trim()) {
+        e.preventDefault();
+        generate();
+      }
+      // Escape to clear all
+      if (e.key === 'Escape' && output) {
+        e.preventDefault();
+        clearAll();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [loading, topic, output]);
+
+  const generate = async () => {
+    if (!topic.trim()) {
+      setError('Please enter a topic or description for your content.');
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => {
-      setOutput({
-        hooks: [
-          'The one secret to viral growth nobody tells you… 🤫',
-          'Stop scrolling! This 2025 workflow will change everything.',
-          'I tried 50 strategies. Only this one worked.',
-        ],
-        captions: [
-          `Building the future of marketing with AI. It's not just about the tools — it's about the strategy. 🚀\n\n#ViralPulse #MarketingTips #AI`,
-          'Your content deserves to be seen. Let\'s make it happen. ✨',
-        ],
-        hashtags: ['#CreatorEconomy', '#ViralGrowth', '#AIMarketing', '#ContentStrategy', '#GrowthHacking'],
-      });
+    setError(null);
+
+    try {
+      const result = await api.generateContent(topic.trim(), platform, goal);
+
+      if (result.success && result.data) {
+        setOutput({
+          hooks: result.data.hooks || [],
+          captions: result.data.captions || [],
+          hashtags: result.data.hashtags || []
+        });
+        setRetryCount(0);
+
+        // Show success toast
+        if (window.showToast) {
+          window.showToast('Content generated successfully!', 'success');
+        }
+      } else {
+        throw new Error(result.message || 'Generation failed');
+      }
+    } catch (err) {
+      console.error('Generation error:', err);
+      const errorMessage = err.message?.includes('fetch')
+        ? 'Connection failed. Please check your internet and try again.'
+        : err.message || 'AI service is temporarily unavailable. Please try again.';
+
+      setError(errorMessage);
+      setOutput(null);
+
+      // Show error toast
+      if (window.showToast) {
+        window.showToast(errorMessage, 'error', 5000);
+      }
+    } finally {
       setLoading(false);
-    }, 1400);
+    }
   };
 
-  const copy = (text, id) => {
-    navigator.clipboard.writeText(text);
-    setCopied(id);
-    setTimeout(() => setCopied(null), 1600);
+  const copy = async (text, id) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(id);
+
+      // Show copy success toast
+      if (window.showToast) {
+        window.showToast('Copied to clipboard!', 'success', 2000);
+      }
+
+      setTimeout(() => setCopied(null), 2000);
+    } catch (err) {
+      console.error('Copy failed:', err);
+      if (window.showToast) {
+        window.showToast('Failed to copy. Please try again.', 'error');
+      }
+    }
+  };
+
+  const retry = () => {
+    setRetryCount(prev => prev + 1);
+    generate();
+  };
+
+  const clearAll = () => {
+    setOutput(null);
+    setError(null);
+    setTopic('');
+    setPlatform('Instagram');
+    setGoal('Viral Reach');
+    setRetryCount(0);
   };
 
   return (
@@ -66,50 +142,179 @@ export default function ContentStudio() {
           <p style={{ fontSize: 14, color: '#7A7068', margin: 0 }}>AI-powered hooks, captions and hashtags optimised for your platform.</p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
+          {output && (
+            <button
+              onClick={clearAll}
+              style={{
+                ...pill(false),
+                padding: '8px 18px',
+                border: '1px solid #E8E0D4',
+                background: '#fff',
+                color: '#7A7068'
+              }}
+              onMouseEnter={(e) => e.target.style.background = '#F5F2EE'}
+              onMouseLeave={(e) => e.target.style.background = '#fff'}
+            >
+              Clear All
+            </button>
+          )}
           <button style={{ ...pill(false), padding: '8px 18px' }}>Drafts</button>
           <button style={{ ...pill(false), padding: '8px 18px' }}>Templates</button>
         </div>
       </div>
 
+      {/* Error display with retry */}
+      {error && (
+        <div style={{
+          background: '#FEE8DC',
+          color: '#C05A38',
+          padding: '16px 20px',
+          borderRadius: 12,
+          marginBottom: 20,
+          border: '1px solid #F5D4C7',
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: 12
+        }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 600, marginBottom: 4 }}>⚠️ {error}</div>
+            {retryCount < 3 && (
+              <div style={{ fontSize: 13, opacity: 0.8 }}>
+                Try regenerating or check your connection.
+              </div>
+            )}
+          </div>
+          {retryCount < 3 && (
+            <button
+              onClick={retry}
+              disabled={loading}
+              style={{
+                padding: '6px 12px',
+                borderRadius: 8,
+                background: '#C05A38',
+                color: '#fff',
+                border: 'none',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.6 : 1,
+                transition: 'opacity 0.2s'
+              }}
+            >
+              {loading ? 'Retrying...' : 'Retry'}
+            </button>
+          )}
+        </div>
+      )}
+
       {/* 2-col layout */}
       <div className="cs-grid">
-        {/* ── LEFT control panel ── */}
+        {/* LEFT control panel */}
         <Card style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Platform */}
           <div>
             <p style={{ fontSize: 10, fontWeight: 800, color: '#B0A89C', letterSpacing: '0.14em', margin: '0 0 12px' }}>PLATFORM</p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {PLATFORMS.map(p => <button key={p} style={pill(platform === p)} onClick={() => setPlatform(p)}>{p}</button>)}
+              {PLATFORMS.map(p => (
+                <button
+                  key={p}
+                  onClick={() => setPlatform(p)}
+                  tabIndex={0}
+                  role="radio"
+                  aria-checked={platform === p}
+                  aria-label={`Select ${p} platform`}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setPlatform(p);
+                    }
+                  }}
+                  style={pill(platform === p)}
+                >
+                  {p}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Goal */}
           <div>
             <p style={{ fontSize: 10, fontWeight: 800, color: '#B0A89C', letterSpacing: '0.14em', margin: '0 0 12px' }}>GOAL</p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {GOALS.map(g => <button key={g} style={pill(goal === g, '#C9A96E')} onClick={() => setGoal(g)}>{g}</button>)}
+              {GOALS.map(g => (
+                <button
+                  key={g}
+                  onClick={() => setGoal(g)}
+                  tabIndex={0}
+                  role="radio"
+                  aria-checked={goal === g}
+                  aria-label={`Select ${g} goal`}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setGoal(g);
+                    }
+                  }}
+                  style={pill(goal === g, '#C9A96E')}
+                >
+                  {g}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Topic */}
           <div style={{ flex: 1 }}>
-            <p style={{ fontSize: 10, fontWeight: 800, color: '#B0A89C', letterSpacing: '0.14em', margin: '0 0 12px' }}>TOPIC OR DESCRIPTION</p>
-            <textarea value={topic} onChange={e => setTopic(e.target.value)}
+            <label
+              style={{
+                fontSize: 10,
+                fontWeight: 800,
+                color: '#B0A89C',
+                letterSpacing: '0.14em',
+                margin: '0 0 12px',
+                display: 'block'
+              }}
+            >
+              TOPIC OR DESCRIPTION
+            </label>
+            <textarea
+              value={topic}
+              onChange={e => setTopic(e.target.value)}
               placeholder="What is your content about? Describe your idea, hook, or reel concept…"
               rows={7}
+              maxLength={500}
+              aria-label="Content topic or description"
               style={{
-                width: '100%', borderRadius: 12, border: '1.5px solid #E8E0D4',
-                background: '#F5F2EE', padding: '14px', fontSize: 13, color: '#2B2218',
-                resize: 'none', outline: 'none', fontFamily: 'inherit',
-                lineHeight: 1.6, boxSizing: 'border-box', transition: 'border 150ms',
+                width: '100%',
+                borderRadius: 12,
+                border: '1.5px solid #E8E0D4',
+                background: '#F5F2EE',
+                padding: '14px',
+                fontSize: 13,
+                color: '#2B2218',
+                resize: 'none',
+                outline: 'none',
+                fontFamily: 'inherit',
+                lineHeight: 1.6,
+                boxSizing: 'border-box',
+                transition: 'border 150ms',
               }}
               onFocus={e => e.target.style.border = '1.5px solid #C05A38'}
               onBlur={e => e.target.style.border = '1.5px solid #E8E0D4'}
             />
+            <div style={{
+              fontSize: 11,
+              color: topic.length > 450 ? '#C05A38' : '#B0A89C',
+              marginTop: 6,
+              textAlign: 'right',
+              fontWeight: topic.length > 450 ? 600 : 400
+            }}>
+              {topic.length}/500
+            </div>
           </div>
 
-          {/* CTA */}
-          <button onClick={generate} disabled={loading || !topic.trim()}
+          <button
+            onClick={generate}
+            disabled={loading || !topic.trim()}
+            aria-label={loading ? "Generating content, please wait" : "Generate optimized content for your topic"}
             style={{
               width: '100%', padding: '14px', borderRadius: 999,
               background: loading || !topic.trim() ? '#B0A89C' : '#C05A38',
@@ -117,15 +322,25 @@ export default function ContentStudio() {
               cursor: loading || !topic.trim() ? 'not-allowed' : 'pointer',
               fontFamily: 'inherit', display: 'flex', alignItems: 'center',
               justifyContent: 'center', gap: 8, transition: 'background 150ms',
-            }}>
+            }}
+          >
             {loading
               ? <><RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} /> Generating…</>
               : <><Sparkles size={16} /> Optimize Content</>
             }
           </button>
+          <div style={{
+            fontSize: 11,
+            color: '#B0A89C',
+            textAlign: 'center',
+            marginTop: 8,
+            opacity: 0.7
+          }}>
+            Press Ctrl+Enter to generate • Esc to clear
+          </div>
         </Card>
 
-        {/* ── RIGHT output ── */}
+        {/* RIGHT output */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {output ? (
             <>

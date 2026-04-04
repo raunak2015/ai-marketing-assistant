@@ -146,10 +146,10 @@ export default function Layout({ children }) {
                     .pm-item { display: flex; alignItems: center; gap: 10px; padding: 12px 16px; font-size: 13px; color: #2B2218; text-decoration: none; transition: background 150ms; cursor: pointer; border: none; background: none; width: 100%; text-align: left; font-family: inherit; }
                     .pm-item:hover { background: #F0EBE3; color: #C05A38; }
                   `}</style>
-                  <Link to="/profile" className="pm-item">
+                  <Link to="/profile" className="pm-item" onClick={() => setProfileOpen(false)}>
                     <User size={15} color="#7A7068" /> View Profile
                   </Link>
-                  <Link to="/settings" className="pm-item">
+                  <Link to="/settings" className="pm-item" onClick={() => setProfileOpen(false)}>
                     <Settings size={15} color="#7A7068" /> Settings
                   </Link>
                   <div style={{ height: 1, background: '#DDD6CA', margin: '4px 0' }} />

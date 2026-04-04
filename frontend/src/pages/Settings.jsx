@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { 
   User, Link2, BarChart3, Zap, Bell, Palette, Shield, 
   Camera, Check, LogOut, ChevronRight, ArrowUpRight, 
   ArrowDownRight, Star, Crown, Globe, Monitor, Smartphone, 
-  Download, Trash2, Eye, EyeOff, Plus, Play, Info, Leaf, Sparkles
+  Download, Trash2, Eye, EyeOff, Plus, Play, Info, Leaf, Sparkles,
+  RefreshCw, Map
 } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -54,15 +56,20 @@ const COLORS = {
 };
 
 /* ─── MOCK DATA ─── */
-const NAV_ITEMS = [
+const PROFILE_ITEMS = [
   { id: 'Personal Info', icon: User, label: 'Personal Info' },
   { id: 'Connected Accounts', icon: Link2, label: 'Connected Accounts' },
   { id: 'My Analytics Summary', icon: BarChart3, label: 'My Analytics Summary' },
   { id: 'AI Usage & Credits', icon: Zap, label: 'AI Usage & Credits' },
+];
+
+const SETTINGS_ITEMS = [
   { id: 'Notifications', icon: Bell, label: 'Notifications' },
   { id: 'Appearance & Theme', icon: Palette, label: 'Appearance & Theme' },
   { id: 'Privacy & Security', icon: Shield, label: 'Privacy & Security' },
 ];
+
+const NAV_ITEMS = [...PROFILE_ITEMS, ...SETTINGS_ITEMS];
 
 const ROLES = [
   { id: 'Creator', label: 'Creator', icon: Palette },
@@ -691,7 +698,14 @@ const PrivacySecurity = () => {
 /* ─── MAIN COMPONENT ─── */
 
 export default function Settings() {
-  const [activeSection, setActiveSection] = useState('Personal Info');
+  const location = useLocation();
+  const isProfileView = location.pathname.includes('/profile');
+  
+  const filteredNavItems = useMemo(() => {
+    return isProfileView ? PROFILE_ITEMS : SETTINGS_ITEMS;
+  }, [isProfileView]);
+
+  const [activeSection, setActiveSection] = useState(isProfileView ? 'Personal Info' : 'Notifications');
 
   /* Fix for direct navigation from layout */
   useEffect(() => {
@@ -699,8 +713,11 @@ export default function Settings() {
     const section = params.get('section');
     if (section && NAV_ITEMS.find(n => n.id === section)) {
       setActiveSection(section);
+    } else {
+      // Default based on current mode
+      setActiveSection(isProfileView ? 'Personal Info' : 'Notifications');
     }
-  }, []);
+  }, [location.search, isProfileView]);
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.bg, paddingBottom: 40 }}>
@@ -708,11 +725,17 @@ export default function Settings() {
       {/* ─── HEADER ─── */}
       <div style={{ padding: '24px 40px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: COLORS.text, margin: 0 }}>My Profile</h1>
-          <p style={{ fontSize: 13, color: COLORS.muted, marginTop: 4 }}>Manage your creator identity and app preferences</p>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: COLORS.text, margin: 0 }}>
+            {isProfileView ? 'My Profile' : 'App Settings'}
+          </h1>
+          <p style={{ fontSize: 13, color: COLORS.muted, marginTop: 4 }}>
+            {isProfileView ? 'Manage your creator identity and public presence' : 'Configure your application preferences and security'}
+          </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button style={{ background: 'none', border: 'none', color: COLORS.primary, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Preview Public Profile</button>
+          {isProfileView && (
+            <button style={{ background: 'none', border: 'none', color: COLORS.primary, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Preview Public Profile</button>
+          )}
           <button style={{ padding: '10px 24px', borderRadius: 999, background: COLORS.primary, color: 'white', border: 'none', fontSize: 14, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(192,90,56,0.15)' }}>Save All Changes</button>
         </div>
       </div>
@@ -727,40 +750,37 @@ export default function Settings() {
         {/* SIDEBAR */}
         <aside className="profile-sidebar">
           <SectionCard noPadding style={{ position: 'sticky', top: 80 }}>
-            {/* Identity Card */}
-            <div style={{ padding: '32px 24px', textAlign: 'center', position: 'relative' }}>
-              <div 
-                className="avatar-container"
-                style={{ position: 'relative', width: 100, height: 100, margin: '0 auto 16px', cursor: 'pointer' }}
-              >
-                <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'linear-gradient(135deg, #C05A38, #7A9A6E)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 28, fontWeight: 800 }}>PS</div>
-                <div className="avatar-hover-overlay" style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', opacity: 0, transition: 'opacity 150ms' }}>
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: COLORS.primary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Camera size={14}/>
+            {/* Identity Card - Only in Profile View */}
+            {isProfileView && (
+              <div style={{ padding: '32px 24px', textAlign: 'center', position: 'relative', borderBottom: `1px solid ${COLORS.divider}` }}>
+                <div 
+                  className="avatar-container"
+                  style={{ position: 'relative', width: 100, height: 100, margin: '0 auto 16px', cursor: 'pointer' }}
+                >
+                  <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'linear-gradient(135deg, #C05A38, #7A9A6E)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 28, fontWeight: 800 }}>PS</div>
+                  <div className="avatar-hover-overlay" style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', opacity: 0, transition: 'opacity 150ms' }}>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: COLORS.primary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Camera size={14}/>
+                    </div>
                   </div>
                 </div>
+                <h3 style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 800, color: COLORS.text }}>Pritesh Sharma</h3>
+                <p style={{ margin: '0 0 16px', fontSize: 13, color: COLORS.muted }}>@pritesh_cg</p>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 16 }}>
+                  <span style={{ padding: '4px 12px', borderRadius: 999, background: COLORS.chip, color: COLORS.text, fontSize: 11, fontWeight: 700 }}>✦ CREATOR</span>
+                  <span style={{ padding: '4px 12px', borderRadius: 999, background: COLORS.primary, color: 'white', fontSize: 11, fontWeight: 700 }}>🏆 PRO</span>
+                </div>
+                
+                {/* Botanical Decoration */}
+                <div style={{ position: 'absolute', bottom: 0, left: 0, opacity: 0.12, pointerEvents: 'none' }}>
+                  <Leaf size={60} style={{ color: COLORS.dark }}/>
+                </div>
               </div>
-              <h3 style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 800, color: COLORS.text }}>Pritesh Sharma</h3>
-              <p style={{ margin: '0 0 16px', fontSize: 13, color: COLORS.muted }}>@pritesh_cg</p>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 16 }}>
-                <span style={{ padding: '4px 12px', borderRadius: 999, background: COLORS.chip, color: COLORS.text, fontSize: 11, fontWeight: 700 }}>✦ CREATOR</span>
-                <span style={{ padding: '4px 12px', borderRadius: 999, background: COLORS.primary, color: 'white', fontSize: 11, fontWeight: 700 }}>🏆 PRO PLAN</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12, color: COLORS.muted }}>
-                ⭐ Virality Score: <span style={{ fontWeight: 800, color: COLORS.primary }}>87</span> <ArrowUpRight size={14} style={{ color: COLORS.positive }}/>
-              </div>
-              
-              {/* Botanical Decoration */}
-              <div style={{ position: 'absolute', bottom: 0, left: 0, opacity: 0.12, pointerEvents: 'none' }}>
-                <Leaf size={60} style={{ color: COLORS.dark }}/>
-              </div>
-            </div>
-
-            <div style={{ height: 1, background: COLORS.divider }}/>
+            )}
 
             {/* Nav Menu */}
             <nav style={{ padding: '12px 0' }}>
-              {NAV_ITEMS.map(item => {
+              {filteredNavItems.map(item => {
                 const active = activeSection === item.id;
                 return (
                   <button key={item.id} onClick={() => setActiveSection(item.id)} style={{
@@ -797,32 +817,32 @@ export default function Settings() {
             </SectionCard>
           )}
           {activeSection === 'Connected Accounts' && (
-            <SectionCard title="Connected Social Accounts" subtitle="Link platforms to unlock real-time analytics and posting">
+            <SectionCard title="Connected Social Accounts" subtitle="Link platforms to unlock real-time analytics">
               <ConnectedAccounts />
             </SectionCard>
           )}
           {activeSection === 'My Analytics Summary' && (
-            <SectionCard title="Your Performance Overview" subtitle="High-level metrics across all connected platforms">
+            <SectionCard title="Your Performance Overview" subtitle="High-level metrics across all platforms">
               <AnalyticsSummary />
             </SectionCard>
           )}
           {activeSection === 'AI Usage & Credits' && (
-            <SectionCard title="AI Credits & Plan Usage" subtitle="Monitor your generation limits and project activities">
+            <SectionCard title="AI Credits & Plan Usage" subtitle="Monitor your generation limits">
               <AIUsage />
             </SectionCard>
           )}
           {activeSection === 'Notifications' && (
-            <SectionCard title="Notification Preferences" subtitle="Control how and when you receive ViralPulse alerts">
+            <SectionCard title="Notification Preferences" subtitle="Control how you receive ViralPulse alerts">
               <NotificationSettings />
             </SectionCard>
           )}
           {activeSection === 'Appearance & Theme' && (
-            <SectionCard title="Appearance & Theme" subtitle="Customize the visual experience of your marketing tool">
+            <SectionCard title="Appearance & Theme" subtitle="Customize the visual experience">
               <AppearanceTheme />
             </SectionCard>
           )}
           {activeSection === 'Privacy & Security' && (
-            <SectionCard title="Privacy & Security" subtitle="Manage your account access and data protection">
+            <SectionCard title="Privacy & Security" subtitle="Manage your account access and protection">
               <PrivacySecurity />
             </SectionCard>
           )}
@@ -831,13 +851,16 @@ export default function Settings() {
 
       {/* ─── MOBILE ONLY HERO & TABS ─── */}
       <div className="mobile-profile-hero" style={{ display: 'none', padding: '0 20px 20px', textAlign: 'center' }}>
-         <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'linear-gradient(135deg, #C05A38, #7A9A6E)', margin: '20px auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 24, fontWeight: 800 }}>PS</div>
-         <h3 style={{ margin: '0 0 2px', fontSize: 18, fontWeight: 800, color: COLORS.text }}>Pritesh Sharma</h3>
-         <p style={{ margin: '0 0 16px', fontSize: 13, color: COLORS.muted }}>@pritesh_cg</p>
-         <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
-           <span style={{ padding: '4px 12px', borderRadius: 999, background: COLORS.chip, fontSize: 10, fontWeight: 700 }}>CREATOR</span>
-           <span style={{ padding: '4px 12px', borderRadius: 999, background: COLORS.primary, color: 'white', fontSize: 10, fontWeight: 700 }}>PRO</span>
-         </div>
+         {isProfileView && (
+           <>
+             <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'linear-gradient(135deg, #C05A38, #7A9A6E)', margin: '20px auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 24, fontWeight: 800 }}>PS</div>
+             <h3 style={{ margin: '0 0 2px', fontSize: 18, fontWeight: 800, color: COLORS.text }}>Pritesh Sharma</h3>
+             <p style={{ margin: '0 0 16px', fontSize: 13, color: COLORS.muted }}>@pritesh_cg</p>
+           </>
+         )}
+         {!isProfileView && (
+           <h3 style={{ margin: '24px 0 16px', fontSize: 20, fontWeight: 800, color: COLORS.text }}>App Settings</h3>
+         )}
       </div>
       
       <div className="mobile-tabs-container" style={{ display: 'none', position: 'sticky', top: 58, zIndex: 85, background: COLORS.bg, borderBottom: `1px solid ${COLORS.divider}`, padding: '12px 20px' }}>

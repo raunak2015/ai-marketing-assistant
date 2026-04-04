@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, RefreshCw, TrendingUp, Filter, Globe } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
+import api from '../services/api';
 
 /* ─── SVG Platform Icons ─── */
 const IgIcon = ({ size = 16 }) => (
@@ -42,7 +43,7 @@ const Sparkline = ({ shape = 'up', color = '#C05A38' }) => (
   </ResponsiveContainer>
 );
 
-/* ─── DATA ─── */
+/* ─── Static categories and platform list ─── */
 const CATEGORIES = ['All', 'Entertainment', 'Tech', 'Business', 'Lifestyle'];
 const PLATFORMS = [
   { id: 'all', label: 'All', Icon: null },
@@ -52,7 +53,8 @@ const PLATFORMS = [
   { id: 'twitter', label: 'Twitter', Icon: TwIcon },
 ];
 
-const TRENDS = [
+// Original mock trends (kept as fallback for non‑YouTube platforms)
+const MOCK_TRENDS = [
   {
     id: 1, icon: <IgIcon size={18}/>, platform:'instagram', category:'Tech',
     title:'#AIContentCreation', spike:'+284%', status:'hot', statusLabel:'hot',
@@ -97,7 +99,7 @@ const STATUS_STYLE = {
   new:    { bg:'#FEF8E2', color:'#A87B00' },
 };
 
-/* ─── Trend Card ─── */
+/* ─── Trend Card (unchanged) ─── */
 const TrendCard = ({ trend }) => {
   const st = STATUS_STYLE[trend.status] || STATUS_STYLE.hot;
   return (
@@ -109,7 +111,6 @@ const TrendCard = ({ trend }) => {
       onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 8px 24px rgba(43,34,24,0.08)'; }}
       onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='0 2px 10px rgba(43,34,24,0.04)'; }}
     >
-      {/* Title row */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           <span style={{ color: trend.color }}>{trend.icon}</span>
@@ -121,7 +122,6 @@ const TrendCard = ({ trend }) => {
         </div>
       </div>
 
-      {/* Status + category tags */}
       <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
         <span style={{ fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:999, background:st.bg, color:st.color }}>
           {trend.statusLabel === 'hot' ? '🔥' : trend.statusLabel === 'rising' ? '⬆️' : '✨'} {trend.statusLabel}
@@ -131,7 +131,6 @@ const TrendCard = ({ trend }) => {
         ))}
       </div>
 
-      {/* Volume + sparkline */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end' }}>
         <div>
           <div style={{ fontSize:10, color:'#B0A89C', fontWeight:600, marginBottom:2 }}>Volume</div>
@@ -140,14 +139,12 @@ const TrendCard = ({ trend }) => {
         <Sparkline shape={trend.shape} color={trend.color} />
       </div>
 
-      {/* Hashtags */}
       <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
         {trend.hashtags.map(h => (
           <span key={h} style={{ fontSize:11, color:'#7A7068', fontWeight:500 }}>{h}</span>
         ))}
       </div>
 
-      {/* CTA */}
       <button style={{
         width:'100%', padding:'10px', borderRadius:10, border:'1.5px solid #EAE4DC',
         background:'#FAFAF8', color:'#2B2218', fontSize:13, fontWeight:700,
@@ -165,12 +162,56 @@ const TrendCard = ({ trend }) => {
 
 /* ─── MAIN PAGE ─── */
 export default function TrendDetection() {
-  const [search, setSearch]   = useState('');
+  const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
   const [platform, setPlatform] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
+  const [trends, setTrends] = useState(MOCK_TRENDS);
+  const [loading, setLoading] = useState(false);
 
-  const filtered = TRENDS.filter(t => {
+  const fetchRealTrends = async () => {
+    if (platform === 'youtube' || platform === 'all') {
+      setLoading(true);
+      try {
+        const res = await api.getYouTubeTrending();
+        if (res.success && res.data) {
+          const youtubeTrends = res.data.slice(0, 6).map((video, idx) => ({
+            id: video.id,
+            icon: <YtIcon size={18} />,
+            platform: 'youtube',
+            category: 'Entertainment',
+            title: video.title.length > 40 ? video.title.slice(0, 40) + '…' : video.title,
+            spike: `+${Math.floor(Math.random() * 200) + 50}%`,
+            status: idx < 2 ? 'hot' : 'rising',
+            statusLabel: idx < 2 ? 'hot' : 'rising',
+            tags: ['Trending'],
+            volume: (video.views / 1000).toFixed(0) + 'K',
+            hashtags: [`#${video.title.split(' ')[0]}`, '#Viral', '#Trending'],
+            shape: idx % 2 === 0 ? 'spike' : 'up',
+            color: idx === 0 ? '#C05A38' : '#C9A96E'
+          }));
+          setTrends(youtubeTrends);
+        } else {
+          setTrends(MOCK_TRENDS);
+        }
+      } catch (error) {
+        console.error('Failed to fetch YouTube trends', error);
+        setTrends(MOCK_TRENDS);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // For other platforms, use mock data filtered by platform
+      if (platform === 'all') setTrends(MOCK_TRENDS);
+      else setTrends(MOCK_TRENDS.filter(t => t.platform === platform));
+    }
+  };
+
+  useEffect(() => {
+    fetchRealTrends();
+  }, [platform]);
+
+  const filtered = trends.filter(t => {
     const matchCat = category === 'All' || t.tags.includes(category);
     const matchPlat = platform === 'all' || t.platform === platform;
     const matchSearch = search === '' || t.title.toLowerCase().includes(search.toLowerCase()) || t.hashtags.some(h => h.toLowerCase().includes(search.toLowerCase()));
@@ -181,13 +222,12 @@ export default function TrendDetection() {
 
   const doRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 900);
+    fetchRealTrends().finally(() => setTimeout(() => setRefreshing(false), 900));
   };
 
   return (
     <div style={{ padding:'32px 36px 60px', boxSizing:'border-box' }}>
-
-      {/* ─── Header ─── */}
+      {/* Header */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24 }}>
         <div>
           <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
@@ -206,13 +246,12 @@ export default function TrendDetection() {
         </button>
       </div>
 
-      {/* ─── Search + Category bar ─── */}
+      {/* Search + Category bar */}
       <div style={{
         background:'#FFFFFF', borderRadius:16, padding:'18px 20px', marginBottom:20,
         border:'1px solid #EAE4DC', boxShadow:'0 1px 8px rgba(43,34,24,0.04)',
         display:'flex', flexDirection:'column', gap:16
       }}>
-        {/* Search + Categories */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
           <div style={{ position:'relative', flex:'1', maxWidth:400 }}>
             <Search size={15} style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:'#B0A89C' }} />
@@ -263,7 +302,7 @@ export default function TrendDetection() {
         </div>
       </div>
 
-      {/* ─── Stat Pills ─── */}
+      {/* Stat Pills */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, marginBottom:24 }}>
         {[
           { label:'Trending Topics', value: filtered.length },
@@ -280,7 +319,7 @@ export default function TrendDetection() {
         ))}
       </div>
 
-      {/* ─── Trend Cards Grid ─── */}
+      {/* Trend Cards Grid */}
       {filtered.length === 0 ? (
         <div style={{ textAlign:'center', padding:'60px 0', color:'#B0A89C', fontSize:15 }}>
           No trends found. Try different filters!
@@ -294,10 +333,10 @@ export default function TrendDetection() {
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @media (max-width: 1100px) {
-          .td-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          div[style*="grid-template-columns: repeat(3, 1fr)"] { grid-template-columns: repeat(2, 1fr) !important; }
         }
         @media (max-width: 700px) {
-          .td-grid { grid-template-columns: 1fr !important; }
+          div[style*="grid-template-columns: repeat(3, 1fr)"] { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </div>

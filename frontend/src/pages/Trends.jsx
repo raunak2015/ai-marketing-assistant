@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { BarChart, Bar, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { ArrowUpRight, Leaf } from 'lucide-react';
+import api from '../services/api';
 
 /* ─── Gauge (same as dashboard) ─── */
 function Gauge({ score }) {
@@ -76,7 +77,7 @@ const Card = ({ children, style = {} }) => (
 const PLATFORMS = ['Instagram','YouTube','LinkedIn','Twitter'];
 const CONTENT_TYPES = ['Caption','Reel/Short','Thumbnail','Post Idea','Script'];
 
-const suggestions = [
+const defaultSuggestions = [
   { text: 'Add a curiosity gap in the first 3 seconds of the caption.', level: 'HIGH IMPACT' },
   { text: 'Leverage trending audio #LohGarden vibes for background.', level: 'MEDIUM' },
   { text: 'Optimize CTA: Ask a binary question (Yes/No) to boost comments.', level: 'HIGH IMPACT' },
@@ -90,15 +91,89 @@ export default function Campaigns() {
   const [content, setContent] = useState('');
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [analyzed, setAnalyzed] = useState(false);
+  const [prediction, setPrediction] = useState(null);
+  const [errorMsg, setErrorMsg] = useState('');
   const fileRef = useRef();
   const MAX = 2000;
 
   const handleDrop = (e) => {
     e.preventDefault();
     setDragging(false);
-    setUploading(true);
-    setTimeout(() => setUploading(false), 1200);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      handleFileChange({ target: { files } });
+    }
   };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    // Simulate upload or process locally
+    console.log('Selected file:', file.name);
+    setTimeout(() => {
+      setUploading(false);
+      // You could set the file in state here if needed
+    }, 1200);
+  };
+
+  const handleAnalyze = async () => {
+    if (!content.trim()) {
+      setErrorMsg('Please enter some content text first.');
+      return;
+    }
+    setLoading(true);
+    setErrorMsg('');
+    console.log('Starting analysis for:', activePlatform, activeType);
+    try {
+      const emojiRegex = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
+      const contentData = {
+        title: content.slice(0, 100),
+        description: content,
+        hashtags: content.match(/#\w+/g) || [],
+        platform: activePlatform,
+        hasEmoji: emojiRegex.test(content),
+        hasQuestion: content.includes('?'),
+        hasCallToAction: /(click|share|save|subscribe|follow|comment|tag)/i.test(content),
+      };
+      console.log('Sending to API:', contentData);
+      const result = await api.predictVirality(contentData);
+      console.log('API Result:', result);
+      console.log('Analysis result received:', result.data);
+      if (result.success) {
+        setPrediction(result.data);
+      } else {
+        setErrorMsg(result.message || 'Prediction failed. Please try again.');
+      }
+      setAnalyzed(true);
+    } catch (err) {
+      console.error('Analysis error:', err);
+      setErrorMsg('Backend unreachable or prediction failed. Please check your connection.');
+      setAnalyzed(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Build current suggestions from prediction or defaults
+  const liveSuggestions = prediction?.suggestions && Array.isArray(prediction.suggestions)
+    ? prediction.suggestions.map(s => ({ 
+        text: s?.text || s?.suggestion || s?.tip || 'Check content relevance', 
+        level: (s?.impact || s?.level || s?.priority || 'MEDIUM').toUpperCase() 
+      }))
+    : defaultSuggestions;
+
+  const viralScore   = analyzed && prediction ? (Number(prediction.viralityScore) || 0) : 0;
+  const shareability = analyzed && prediction ? (prediction.shareability || prediction.shareScore || 0) : '—';
+  const engagement   = analyzed && prediction ? (prediction.engagementFit || prediction.engagementScore || 0) : '—';
+  const trendMatch   = analyzed && prediction ? (prediction.trendMatch || prediction.trendScore || 0) : '—';
+  
+  const safeReach = (prediction?.predictedReach && !isNaN(prediction.predictedReach)) ? prediction.predictedReach : 245000;
+  const reach       = analyzed ? (safeReach / 1000).toFixed(0) + 'K' : '—';
+  const impressions = analyzed ? (safeReach * 1.8 / 1000).toFixed(0) + 'K' : '—';
+  const potential   = viralScore >= 70 ? 'HIGH VIRAL POTENTIAL' : viralScore >= 40 ? 'MEDIUM POTENTIAL' : analyzed ? 'LOW POTENTIAL' : '';
 
   /* Pill button style */
   const pill = (active) => ({
@@ -190,7 +265,7 @@ export default function Campaigns() {
               cursor: 'pointer', marginBottom: 18, transition: 'all 150ms',
               background: dragging ? '#FEF0EA' : 'transparent',
             }}>
-            <input ref={fileRef} type="file" style={{ display: 'none' }} accept="image/*,video/*"/>
+            <input ref={fileRef} type="file" style={{ display: 'none' }} accept="image/*,video/*" onChange={handleFileChange}/>
             <div style={{
               width: 38, height: 38, borderRadius: '50%',
               background: '#FEF0EA', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -209,17 +284,30 @@ export default function Campaigns() {
             </p>
           </div>
 
+          {/* Error message */}
+          {errorMsg && (
+            <div style={{ background: '#FEF0EA', color: '#C05A38', padding: '10px 14px', borderRadius: 10, fontSize: 13, marginBottom: 12 }}>
+              ⚠️ {errorMsg}
+            </div>
+          )}
+
           {/* CTA */}
-          <button style={{
-            width: '100%', padding: '15px', borderRadius: 999,
-            background: '#C05A38', color: '#fff', border: 'none',
-            fontSize: 14, fontWeight: 700, cursor: 'pointer',
-            fontFamily: 'inherit', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', gap: 8, transition: 'background 150ms',
-          }}
-            onMouseEnter={e => e.currentTarget.style.background = '#A8442A'}
-            onMouseLeave={e => e.currentTarget.style.background = '#C05A38'}>
-            ✦ Analyze Virality
+          <button
+            onClick={handleAnalyze}
+            disabled={loading}
+            style={{
+              width: '100%', padding: '15px', borderRadius: 999,
+              background: loading ? '#DDD6CA' : '#C05A38', color: loading ? '#7A7068' : '#fff',
+              border: 'none', fontSize: 14, fontWeight: 700,
+              cursor: loading ? 'not-allowed' : 'pointer',
+              fontFamily: 'inherit', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', gap: 8, transition: 'background 150ms',
+            }}
+            onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#A8442A'; }}
+            onMouseLeave={e => { if (!loading) e.currentTarget.style.background = '#C05A38'; }}>
+            {loading ? (
+              <><svg style={{ animation: 'spin 1s linear infinite' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Analyzing...</>
+            ) : '✦ Analyze Virality'}
           </button>
         </Card>
 
@@ -228,17 +316,20 @@ export default function Campaigns() {
 
           {/* ① Virality Score card */}
           <Card style={{ textAlign: 'center' }}>
-            <Gauge score={87}/>
-            <p style={{ fontSize: 11, fontWeight: 800, color: '#C05A38', letterSpacing: '0.12em', margin: '4px 0 18px' }}>
-              HIGH VIRAL POTENTIAL
-            </p>
+            <Gauge score={viralScore}/>
+            {analyzed && (
+              <p style={{ fontSize: 11, fontWeight: 800, color: '#C05A38', letterSpacing: '0.12em', margin: '4px 0 18px' }}>
+                {potential}
+              </p>
+            )}
+            {!analyzed && (
+              <p style={{ fontSize: 12, color: '#B0A89C', margin: '8px 0 18px' }}>Enter content and click Analyze</p>
+            )}
             <div style={{ display: 'flex', gap: 10 }}>
-              {[['SHAREABILITY','92'],['ENGAGEMENT','78'],['TREND MATCH','88']].map(([l,v]) => (
-                <div key={l} style={{
-                  flex: 1, background: '#F5F2EE', borderRadius: 10, padding: '10px 6px',
-                }}>
+              {[['SHAREABILITY', shareability], ['ENGAGEMENT', engagement], ['TREND MATCH', trendMatch]].map(([l, v]) => (
+                <div key={l} style={{ flex: 1, background: '#F5F2EE', borderRadius: 10, padding: '10px 6px' }}>
                   <p style={{ fontSize: 9, color: '#B0A89C', fontWeight: 700, letterSpacing: '0.1em', margin: '0 0 4px' }}>{l}</p>
-                  <p style={{ fontSize: 18, fontWeight: 800, color: '#C05A38', margin: 0 }}>{v}</p>
+                  <p style={{ fontSize: 18, fontWeight: 800, color: analyzed ? '#C05A38' : '#B0A89C', margin: 0 }}>{v}</p>
                 </div>
               ))}
             </div>
@@ -251,11 +342,11 @@ export default function Campaigns() {
               <h2 style={{ fontSize: 14, fontWeight: 700, color: '#2B2218', margin: 0 }}>AI Optimization Suggestions</h2>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-              {suggestions.map(({ text, level }, i) => (
+              {liveSuggestions.map(({ text, level }, i) => (
                 <div key={i} style={{
                   display: 'flex', alignItems: 'center', gap: 12,
                   padding: '12px 0',
-                  borderBottom: i < suggestions.length - 1 ? '1px solid #F0EBE3' : 'none',
+                  borderBottom: i < liveSuggestions.length - 1 ? '1px solid #F0EBE3' : 'none',
                 }}>
                   <span style={{ fontSize: 14, flexShrink: 0 }}>🌿</span>
                   <p style={{ flex: 1, fontSize: 12.5, color: '#2B2218', margin: 0, lineHeight: 1.5 }}>{text}</p>
@@ -268,8 +359,8 @@ export default function Campaigns() {
           {/* ③ Mini stats row */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             {[
-              { label: 'ESTIMATED REACH', value: '245K' },
-              { label: 'IMPRESSIONS',     value: '1.2M' },
+              { label: 'ESTIMATED REACH', value: reach },
+              { label: 'IMPRESSIONS', value: impressions },
             ].map(({ label, value }) => (
               <Card key={label} style={{ padding: '16px 16px 12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
@@ -399,6 +490,10 @@ export default function Campaigns() {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 18px;
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
         @media (max-width: 900px) {
           .vps-grid { grid-template-columns: 1fr; }

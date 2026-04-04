@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from 'recharts';
 import { Globe, Camera, Video, Users } from 'lucide-react';
+import api from '../services/api';
 
 
 /* ─── Safety Icon Components (SVG) ─── */
@@ -33,13 +34,14 @@ const PLAT_TABS = [
   { label: 'Twitter',       Icon: TwitterIcon },
 ];
 
-const kpis = [
+const defaultKpis = [
   { label: 'Total Reach',      value: '2.4M',    delta: '+12%',  up: true  },
   { label: 'Engagement Rate',  value: '4.8%',    delta: '+0.6%', up: true  },
   { label: 'Watch Time',       value: '18.2K hrs',delta: '+22%', up: true  },
   { label: 'Shares',           value: '84.1K',   delta: '-3%',   up: false },
   { label: 'Follower Growth',  value: '+12.4K',  delta: '+9%',   up: true  },
 ];
+
 
 const lineData = [
   { week: 'Week 1', instagram: 18000, youtube: 14000, linkedin: 10000, twitter: 22000 },
@@ -106,8 +108,24 @@ const Card = ({ children, style = {} }) => (
 );
 
 export default function Analytics() {
-  const [range, setRange]   = useState('30D');
+  const [range, setRange]     = useState('30D');
   const [platTab, setPlatTab] = useState('All Platforms');
+  const [kpis, setKpis]       = useState(defaultKpis);
+
+  useEffect(() => {
+    api.getAnalyticsOverview().then(res => {
+      if (res.success && res.data) {
+        const d = res.data;
+        setKpis([
+          { label: 'Total Reach',     value: d.totalReach      || '2.4M',      delta: '+12%',  up: true  },
+          { label: 'Engagement Rate', value: d.engagementRate  || '4.8%',      delta: '+0.6%', up: true  },
+          { label: 'Watch Time',      value: d.totalViews      || '18.2K hrs',  delta: '+22%',  up: true  },
+          { label: 'Shares',          value: d.totalShares     || '84.1K',     delta: '-3%',   up: false },
+          { label: 'Follower Growth', value: d.followerGrowth  || '+12.4K',    delta: '+9%',   up: true  },
+        ]);
+      }
+    }).catch(() => {}); // silently fall back to default kpis
+  }, []);
 
   const pill = (active) => ({
     padding: '8px 18px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',

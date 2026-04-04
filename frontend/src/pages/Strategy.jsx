@@ -1,31 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Zap, ExternalLink, MoreHorizontal } from 'lucide-react';
+import api from '../services/api';
 
 /* ── Heatmap data ── */
 const DAYS  = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const HOURS = ['6am', '8am', '10am', '12pm', '2pm', '4pm', '6pm', '8pm', '10pm'];
-const heatData = {
-  Mon: [1,2,2,3,4,4,5,4,2], Tue: [1,1,3,3,5,5,4,3,2],
-  Wed: [2,3,4,4,4,5,5,3,1], Thu: [1,2,3,4,4,5,5,4,2],
-  Fri: [2,2,3,4,5,5,5,4,3], Sat: [2,3,3,4,4,5,5,5,4],
-  Sun: [3,3,4,4,4,4,5,5,3],
-};
 const heatColor = v =>
   v >= 5 ? '#C05A38' : v >= 4 ? '#D47858' : v >= 3 ? '#C9A96E' : v >= 2 ? '#E8D4B8' : '#F0EBE3';
 
-const weeklyPlan = [
+const defaultWeeklyPlan = [
   { action: 'Post "5 AI Tools That Saved Me 10hrs" Reel on Instagram', platform: 'Instagram', priority: 'High' },
   { action: 'Publish LinkedIn carousel on content strategy trends',     platform: 'LinkedIn',  priority: 'Medium' },
   { action: 'Repurpose top Reel as YouTube Short',                      platform: 'YouTube',   priority: 'Medium' },
   { action: 'Tweet thread on AI marketing insights (15 tweets)',        platform: 'Twitter',         priority: 'High' },
 ];
 
-const formats = [
+const defaultFormats = [
   { platform: 'Instagram', color: '#C05A38', format: '15–30s Reels',      reason: 'Algorithm currently prioritizes short video content' },
   { platform: 'YouTube',   color: '#506B40', format: 'YouTube Shorts',    reason: 'Shorts feed prioritized in Q2 2025'                 },
   { platform: 'LinkedIn',  color: '#C9A96E', format: 'Document Carousels',reason: '5.7× more reach than standard text posts'           },
   { platform: 'Twitter',   color: '#3A3028', format: 'Tweet Threads',     reason: 'Highest retweet rate of any Twitter format'               },
 ];
+
+const formatColors = { 'Instagram': '#C05A38', 'YouTube': '#506B40', 'LinkedIn': '#C9A96E', 'Twitter': '#3A3028' };
 
 const flowSteps = [
   { platform: 'Instagram', color: '#C05A38', action: 'Create on Instagram Reels', timing: 'Day 1' },
@@ -55,6 +52,59 @@ const Card = ({ children, style = {} }) => (
 export default function Strategy() {
   const [platFilter, setPlatFilter] = useState('Instagram');
   const [tooltip, setTooltip]       = useState(null);
+  const [weeklyPlan, setWeeklyPlan] = useState(defaultWeeklyPlan);
+  const [formats, setFormats]       = useState(defaultFormats);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [distributionFlow, setDistributionFlow] = useState(flowSteps);
+  
+  const heatData = {
+    Mon: [1,2,2,3,4,4,5,4,2], Tue: [1,1,3,3,5,5,4,3,2],
+    Wed: [2,3,4,4,4,5,5,3,1], Thu: [1,2,3,4,4,5,5,4,2],
+    Fri: [2,2,3,4,5,5,5,4,3], Sat: [2,3,3,4,4,5,5,5,4],
+    Sun: [3,3,4,4,4,4,5,5,3],
+  };
+
+  const handleGenerate = async () => {
+    setIsGenerating(true);
+    try {
+      const res = await api.generateStrategy({ 
+        niche: 'Digital Marketing', 
+        goals: 'Viral growth', 
+        platforms: ['Instagram', 'YouTube', 'LinkedIn'] 
+      });
+      if (res.success && res.data) {
+        setWeeklyPlan(res.data.weeklyPlan || []);
+        if (Array.isArray(res.data.distributionFlow)) {
+          setDistributionFlow(res.data.distributionFlow.map(step => ({
+            ...step,
+            color: formatColors[step.platform] || '#C05A38'
+          })));
+        }
+        if (Array.isArray(res.data.formatRecommendations)) {
+          setFormats(res.data.formatRecommendations.map(f => ({
+            ...f,
+            color: formatColors[f.platform] || '#C05A38'
+          })));
+        }
+      }
+    } catch (err) {
+      console.error('Failed to generate strategy:', err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  useEffect(() => {
+    // Initial data fetch if needed
+    api.getFormatRecommendations().then(res => {
+      if (res.success && res.data && Array.isArray(res.data)) {
+        setFormats(res.data.map(f => ({
+          ...f,
+          color: formatColors[f.platform] || '#C05A38',
+        })));
+      }
+    }).catch(() => {});
+  }, []);
 
   const pill = (active) => ({
     padding: '6px 14px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
@@ -70,27 +120,30 @@ export default function Strategy() {
           <h1 style={{ fontSize: 32, fontWeight: 900, color: '#2B2218', margin: '0 0 6px', letterSpacing: '-0.8px' }}>Archive & Strategy</h1>
           <p style={{ fontSize: 14, color: '#7A7068', margin: 0 }}>Plan, schedule, and distribute your content across every platform.</p>
         </div>
-        <button style={{
-          padding: '10px 20px', borderRadius: 999,
-          background: '#C05A38', color: '#fff', border: 'none',
-          fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-          display: 'flex', alignItems: 'center', gap: 8, transition: 'background 150ms',
-        }}
-          onMouseEnter={e => e.currentTarget.style.background = '#A8442A'}
-          onMouseLeave={e => e.currentTarget.style.background = '#C05A38'}>
-          <Zap size={15}/> Generate Weekly Plan
+        <button 
+          onClick={handleGenerate}
+          disabled={isGenerating}
+          style={{
+            padding: '10px 20px', borderRadius: 999,
+            background: isGenerating ? '#DDD6CA' : '#C05A38', color: '#fff', border: 'none',
+            fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+            display: 'flex', alignItems: 'center', gap: 8, transition: 'background 150ms',
+          }}
+          onMouseEnter={e => { if (!isGenerating) e.currentTarget.style.background = '#A8442A'; }}
+          onMouseLeave={e => { if (!isGenerating) e.currentTarget.style.background = '#C05A38'; }}>
+          <Zap size={15} className={isGenerating ? 'animate-pulse' : ''}/> 
+          {isGenerating ? 'Plan Generating...' : 'Generate Weekly Plan'}
         </button>
       </div>
 
       {/* ── ROW 1: Heatmap + Weekly Plan ── */}
       <div className="st-r1" style={{ marginBottom: 18 }}>
-        {/* Heatmap */}
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
             <h2 style={{ fontSize: 15, fontWeight: 700, color: '#2B2218', margin: 0 }}>Best Posting Windows</h2>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {['Instagram','YouTube','LinkedIn','Twitter'].map(p => (
-                <button key={p} style={pill(platFilter === p)} onClick={() => setPlatFilter(p)}>{p}</button>
+                <button key={p} style={pill(platFilter === p)} onClick={() => setPlatFilter(p)}>{p} Plan</button>
               ))}
             </div>
           </div>
@@ -130,7 +183,6 @@ export default function Strategy() {
                 ))}
               </tbody>
             </table>
-            {/* Legend */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14 }}>
               <span style={{ fontSize: 11, color: '#B0A89C' }}>Low</span>
               {['#F0EBE3','#E8D4B8','#C9A96E','#D47858','#C05A38'].map(c => (
@@ -141,9 +193,8 @@ export default function Strategy() {
           </div>
         </Card>
 
-        {/* Weekly Plan */}
         <Card>
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: '#2B2218', margin: '0 0 18px' }}>This Week's AI Plan</h2>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: '#2B2218', margin: '0 0 18px' }}>This Week's AI Growth Plan</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {weeklyPlan.map((item, i) => (
               <div key={i} style={{ paddingBottom: i < weeklyPlan.length - 1 ? 14 : 0, borderBottom: i < weeklyPlan.length - 1 ? '1px solid #F0EBE3' : 'none', marginBottom: i < weeklyPlan.length - 1 ? 14 : 0 }}>
@@ -155,7 +206,7 @@ export default function Strategy() {
                     <p style={{ fontSize: 12.5, color: '#2B2218', margin: '0 0 7px', lineHeight: 1.5 }}>{item.action}</p>
                     <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
                       <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: 11, background: '#F0EBE3', color: '#7A7068', fontWeight: 500 }}>{item.platform}</span>
-                      <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: 11, background: priorityStyle[item.priority].bg, color: priorityStyle[item.priority].color, fontWeight: 700 }}>{item.priority}</span>
+                      <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: 11, background: priorityStyle[item.priority]?.bg || '#F0F4EE', color: priorityStyle[item.priority]?.color || '#7A9A6E', fontWeight: 700 }}>{item.priority}</span>
                     </div>
                   </div>
                 </div>
@@ -168,37 +219,30 @@ export default function Strategy() {
             fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
           }}>
-            <Zap size={14}/> Execute Plan
+            <Zap size={14}/> {isGenerating ? 'Analyzing...' : 'Execute Growth Plan'}
           </button>
         </Card>
       </div>
 
       {/* ── ROW 2: Formats + Calendar + Distribution ── */}
       <div className="st-r2">
-        {/* Format Recommendations */}
         <Card>
           <h2 style={{ fontSize: 15, fontWeight: 700, color: '#2B2218', margin: '0 0 18px' }}>Format Recommendations</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {formats.map((f, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ width: 32, height: 32, borderRadius: '50%', background: f.color, color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  {f.platform[0]}
+                  {f.platform ? f.platform[0] : '?'}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#2B2218', margin: '0 0 2px' }}>{f.format}</p>
                   <p style={{ fontSize: 11.5, color: '#7A7068', margin: 0, lineHeight: 1.45 }}>{f.reason}</p>
                 </div>
-                <button style={{ padding: '6px 14px', borderRadius: 999, background: '#F0EBE3', color: '#7A7068', border: 'none', fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0, transition: 'background 150ms' }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#E8E0D4'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#F0EBE3'}>
-                  Try
-                </button>
               </div>
             ))}
           </div>
         </Card>
 
-        {/* Calendar */}
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <h2 style={{ fontSize: 15, fontWeight: 700, color: '#2B2218', margin: 0 }}>Content Calendar</h2>
@@ -219,7 +263,6 @@ export default function Strategy() {
                   fontSize: 11, fontWeight: d === TODAY ? 700 : 400, cursor: 'pointer',
                   background: d === TODAY ? '#C05A38' : 'transparent',
                   color: d === TODAY ? '#fff' : '#2B2218',
-                  transition: 'background 150ms',
                 }}>
                   {d}
                 </div>
@@ -233,27 +276,23 @@ export default function Strategy() {
               </div>
             ))}
           </div>
-          <button style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#C05A38', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', marginTop: 14, fontWeight: 600 }}>
-            Open Full Calendar <ExternalLink size={12}/>
-          </button>
         </Card>
 
-        {/* Distribution Strategy */}
         <Card>
           <h2 style={{ fontSize: 15, fontWeight: 700, color: '#2B2218', margin: '0 0 18px' }}>Distribution Strategy</h2>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {flowSteps.map((step, i) => (
+            {distributionFlow.map((step, i) => (
               <div key={i}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 32, height: 32, borderRadius: '50%', background: step.color, color: '#fff', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    {step.platform[0]}
+                    {step.platform ? step.platform[0] : '?'}
                   </div>
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 600, color: '#2B2218', margin: '0 0 2px' }}>{step.action}</p>
                     <p style={{ fontSize: 11, color: '#7A7068', margin: 0 }}>{step.timing}</p>
                   </div>
                 </div>
-                {i < flowSteps.length - 1 && (
+                {i < distributionFlow.length - 1 && (
                   <div style={{ display: 'flex', justifyContent: 'center', margin: '6px 0 6px 16px' }}>
                     <div style={{ width: 1, height: 20, borderLeft: '2px dashed #C05A38', opacity: 0.4 }}/>
                   </div>
@@ -261,16 +300,6 @@ export default function Strategy() {
               </div>
             ))}
           </div>
-          <button style={{
-            marginTop: 20, width: '100%', padding: '11px', borderRadius: 999,
-            background: 'transparent', color: '#7A7068',
-            border: '1.5px solid #E8E0D4', fontSize: 13, fontWeight: 500,
-            cursor: 'pointer', fontFamily: 'inherit', transition: 'background 150ms',
-          }}
-            onMouseEnter={e => e.currentTarget.style.background = '#F0EBE3'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-            Customize Strategy
-          </button>
         </Card>
       </div>
 
@@ -286,6 +315,10 @@ export default function Strategy() {
           .st-root { padding: 18px 14px 40px; }
           .st-r2 { grid-template-columns: 1fr; }
           h1 { font-size: 24px !important; }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>
