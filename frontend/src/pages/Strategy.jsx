@@ -1,80 +1,76 @@
 import { useState, useEffect } from 'react';
 import { Zap, ExternalLink, MoreHorizontal } from 'lucide-react';
-import { motion } from 'framer-motion';
 import api from '../services/api';
 
 /* ── Heatmap data ── */
-const DAYS  = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const HOURS = ['6am', '8am', '10am', '12pm', '2pm', '4pm', '6pm', '8pm', '10pm'];
 const heatColor = v =>
   v >= 5 ? '#C05A38' : v >= 4 ? '#D47858' : v >= 3 ? '#C9A96E' : v >= 2 ? '#E8D4B8' : '#F0EBE3';
 
 const defaultWeeklyPlan = [
   { action: 'Post "5 AI Tools That Saved Me 10hrs" Reel on Instagram', platform: 'Instagram', priority: 'High' },
-  { action: 'Publish LinkedIn carousel on content strategy trends',     platform: 'LinkedIn',  priority: 'Medium' },
-  { action: 'Repurpose top Reel as YouTube Short',                      platform: 'YouTube',   priority: 'Medium' },
-  { action: 'Tweet thread on AI marketing insights (15 tweets)',        platform: 'Twitter',         priority: 'High' },
+  { action: 'Publish LinkedIn carousel on content strategy trends', platform: 'LinkedIn', priority: 'Medium' },
+  { action: 'Repurpose top Reel as YouTube Short', platform: 'YouTube', priority: 'Medium' },
+  { action: 'Tweet thread on AI marketing insights (15 tweets)', platform: 'Twitter', priority: 'High' },
 ];
 
 const defaultFormats = [
-  { platform: 'Instagram', color: '#C05A38', format: '15–30s Reels',      reason: 'Algorithm currently prioritizes short video content' },
-  { platform: 'YouTube',   color: '#506B40', format: 'YouTube Shorts',    reason: 'Shorts feed prioritized in Q2 2025'                 },
-  { platform: 'LinkedIn',  color: '#C9A96E', format: 'Document Carousels',reason: '5.7× more reach than standard text posts'           },
-  { platform: 'Twitter',   color: '#3A3028', format: 'Tweet Threads',     reason: 'Highest retweet rate of any Twitter format'               },
+  { platform: 'Instagram', color: '#C05A38', format: '15–30s Reels', reason: 'Algorithm currently prioritizes short video content' },
+  { platform: 'YouTube', color: '#506B40', format: 'YouTube Shorts', reason: 'Shorts feed prioritized in Q2 2025' },
+  { platform: 'LinkedIn', color: '#C9A96E', format: 'Document Carousels', reason: '5.7× more reach than standard text posts' },
+  { platform: 'Twitter', color: '#3A3028', format: 'Tweet Threads', reason: 'Highest retweet rate of any Twitter format' },
 ];
 
 const formatColors = { 'Instagram': '#C05A38', 'YouTube': '#506B40', 'LinkedIn': '#C9A96E', 'Twitter': '#3A3028' };
 
 const flowSteps = [
   { platform: 'Instagram', color: '#C05A38', action: 'Create on Instagram Reels', timing: 'Day 1' },
-  { platform: 'YouTube',   color: '#506B40', action: 'Clip for YouTube Shorts',   timing: 'Day 2' },
-  { platform: 'LinkedIn',  color: '#C9A96E', action: 'Post on LinkedIn',          timing: 'Day 3' },
+  { platform: 'YouTube', color: '#506B40', action: 'Clip for YouTube Shorts', timing: 'Day 2' },
+  { platform: 'LinkedIn', color: '#C9A96E', action: 'Post on LinkedIn', timing: 'Day 3' },
 ];
 
 const calDots = {
-  3:['#C05A38'], 7:['#7A9A6E','#C05A38'], 10:['#C9A96E'],
-  14:['#C05A38','#506B40'], 17:['#7A9A6E'], 21:['#C9A96E','#C05A38'],
-  24:['#506B40'], 28:['#C05A38','#7A9A6E'],
+  3: ['#C05A38'], 7: ['#7A9A6E', '#C05A38'], 10: ['#C9A96E'],
+  14: ['#C05A38', '#506B40'], 17: ['#7A9A6E'], 21: ['#C9A96E', '#C05A38'],
+  24: ['#506B40'], 28: ['#C05A38', '#7A9A6E'],
 };
 const TODAY = 3;
 const priorityStyle = {
-  High:   { bg: '#FEF0EA', color: '#C05A38' },
+  High: { bg: '#FEF0EA', color: '#C05A38' },
   Medium: { bg: '#F0F4EE', color: '#7A9A6E' },
 };
 
 const Card = ({ children, style = {} }) => (
-  <motion.div 
-    whileHover={{ y: -2, boxShadow: '0 8px 24px rgba(43,34,24,0.05)' }} 
-    transition={{ duration: 0.2 }}
-    style={{
+  <div style={{
     background: '#FAF9F6', borderRadius: 16, border: '1px solid #EAE4DC',
     boxShadow: '0 1px 8px rgba(43,34,24,0.05)', padding: '22px',
     boxSizing: 'border-box', ...style,
-  }}>{children}</motion.div>
+  }}>{children}</div>
 );
 
 export default function Strategy() {
   const [platFilter, setPlatFilter] = useState('Instagram');
-  const [tooltip, setTooltip]       = useState(null);
+  const [tooltip, setTooltip] = useState(null);
   const [weeklyPlan, setWeeklyPlan] = useState(defaultWeeklyPlan);
-  const [formats, setFormats]       = useState(defaultFormats);
+  const [formats, setFormats] = useState(defaultFormats);
   const [isGenerating, setIsGenerating] = useState(false);
   const [distributionFlow, setDistributionFlow] = useState(flowSteps);
-  
+
   const heatData = {
-    Mon: [1,2,2,3,4,4,5,4,2], Tue: [1,1,3,3,5,5,4,3,2],
-    Wed: [2,3,4,4,4,5,5,3,1], Thu: [1,2,3,4,4,5,5,4,2],
-    Fri: [2,2,3,4,5,5,5,4,3], Sat: [2,3,3,4,4,5,5,5,4],
-    Sun: [3,3,4,4,4,4,5,5,3],
+    Mon: [1, 2, 2, 3, 4, 4, 5, 4, 2], Tue: [1, 1, 3, 3, 5, 5, 4, 3, 2],
+    Wed: [2, 3, 4, 4, 4, 5, 5, 3, 1], Thu: [1, 2, 3, 4, 4, 5, 5, 4, 2],
+    Fri: [2, 2, 3, 4, 5, 5, 5, 4, 3], Sat: [2, 3, 3, 4, 4, 5, 5, 5, 4],
+    Sun: [3, 3, 4, 4, 4, 4, 5, 5, 3],
   };
 
   const handleGenerate = async () => {
     setIsGenerating(true);
     try {
-      const res = await api.generateStrategy({ 
-        niche: 'Digital Marketing', 
-        goals: 'Viral growth', 
-        platforms: ['Instagram', 'YouTube', 'LinkedIn'] 
+      const res = await api.generateStrategy({
+        niche: 'Digital Marketing',
+        goals: 'Viral growth',
+        platforms: ['Instagram', 'YouTube', 'LinkedIn']
       });
       if (res.success && res.data) {
         setWeeklyPlan(res.data.weeklyPlan || []);
@@ -107,7 +103,7 @@ export default function Strategy() {
           color: formatColors[f.platform] || '#C05A38',
         })));
       }
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   const pill = (active) => ({
@@ -116,25 +112,15 @@ export default function Strategy() {
     border: 'none', fontSize: 13, fontWeight: active ? 600 : 400, transition: 'all 150ms',
   });
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
-  };
-  const itemAnim = {
-    hidden: { opacity: 0, y: 15 },
-    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
-  };
-
   return (
-    <motion.div className="st-root" variants={container} initial="hidden" animate="show">
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundImage: 'url(/ambient_marketing_bg.png)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.04, zIndex: 0, pointerEvents: 'none' }} />
+    <div className="st-root">
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>
         <div>
           <h1 style={{ fontSize: 32, fontWeight: 900, color: '#2B2218', margin: '0 0 6px', letterSpacing: '-0.8px' }}>Archive & Strategy</h1>
           <p style={{ fontSize: 14, color: '#7A7068', margin: 0 }}>Plan, schedule, and distribute your content across every platform.</p>
         </div>
-        <button 
+        <button
           onClick={handleGenerate}
           disabled={isGenerating}
           style={{
@@ -145,18 +131,18 @@ export default function Strategy() {
           }}
           onMouseEnter={e => { if (!isGenerating) e.currentTarget.style.background = '#A8442A'; }}
           onMouseLeave={e => { if (!isGenerating) e.currentTarget.style.background = '#C05A38'; }}>
-          <Zap size={15} className={isGenerating ? 'animate-pulse' : ''}/> 
+          <Zap size={15} className={isGenerating ? 'animate-pulse' : ''} />
           {isGenerating ? 'Plan Generating...' : 'Generate Weekly Plan'}
         </button>
       </div>
 
       {/* ── ROW 1: Heatmap + Weekly Plan ── */}
-      <motion.div className="st-r1" style={{ marginBottom: 18 }} variants={itemAnim}>
+      <div className="st-r1" style={{ marginBottom: 18 }}>
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
             <h2 style={{ fontSize: 15, fontWeight: 700, color: '#2B2218', margin: 0 }}>Best Posting Windows</h2>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {['Instagram','YouTube','LinkedIn','Twitter'].map(p => (
+              {['Instagram', 'YouTube', 'LinkedIn', 'Twitter'].map(p => (
                 <button key={p} style={pill(platFilter === p)} onClick={() => setPlatFilter(p)}>{p} Plan</button>
               ))}
             </div>
@@ -165,7 +151,7 @@ export default function Strategy() {
             <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 11 }}>
               <thead>
                 <tr>
-                  <th style={{ width: 36, textAlign: 'left', paddingBottom: 10, color: '#B0A89C', fontWeight: 500 }}/>
+                  <th style={{ width: 36, textAlign: 'left', paddingBottom: 10, color: '#B0A89C', fontWeight: 500 }} />
                   {HOURS.map(h => <th key={h} style={{ paddingBottom: 10, color: '#B0A89C', fontWeight: 500, textAlign: 'center', minWidth: 38 }}>{h}</th>)}
                 </tr>
               </thead>
@@ -199,8 +185,8 @@ export default function Strategy() {
             </table>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14 }}>
               <span style={{ fontSize: 11, color: '#B0A89C' }}>Low</span>
-              {['#F0EBE3','#E8D4B8','#C9A96E','#D47858','#C05A38'].map(c => (
-                <div key={c} style={{ width: 20, height: 10, borderRadius: 3, background: c }}/>
+              {['#F0EBE3', '#E8D4B8', '#C9A96E', '#D47858', '#C05A38'].map(c => (
+                <div key={c} style={{ width: 20, height: 10, borderRadius: 3, background: c }} />
               ))}
               <span style={{ fontSize: 11, color: '#B0A89C' }}>High</span>
             </div>
@@ -233,13 +219,13 @@ export default function Strategy() {
             fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
           }}>
-            <Zap size={14}/> {isGenerating ? 'Analyzing...' : 'Execute Growth Plan'}
+            <Zap size={14} /> {isGenerating ? 'Analyzing...' : 'Execute Growth Plan'}
           </button>
         </Card>
-      </motion.div>
+      </div>
 
       {/* ── ROW 2: Formats + Calendar + Distribution ── */}
-      <motion.div className="st-r2" variants={itemAnim}>
+      <div className="st-r2">
         <Card>
           <h2 style={{ fontSize: 15, fontWeight: 700, color: '#2B2218', margin: '0 0 18px' }}>Format Recommendations</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -260,16 +246,16 @@ export default function Strategy() {
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <h2 style={{ fontSize: 15, fontWeight: 700, color: '#2B2218', margin: 0 }}>Content Calendar</h2>
-            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#B0A89C' }}><MoreHorizontal size={16}/></button>
+            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#B0A89C' }}><MoreHorizontal size={16} /></button>
           </div>
           <p style={{ fontSize: 12, color: '#B0A89C', fontWeight: 600, textAlign: 'center', margin: '0 0 10px' }}>April 2026</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 6 }}>
-            {['S','M','T','W','T','F','S'].map((d, i) => (
+            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
               <div key={i} style={{ fontSize: 10, fontWeight: 700, color: '#B0A89C', textAlign: 'center' }}>{d}</div>
             ))}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
-            <div/><div/>
+            <div /><div />
             {Array.from({ length: 30 }, (_, i) => i + 1).map(d => (
               <div key={d} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                 <div style={{
@@ -283,7 +269,7 @@ export default function Strategy() {
                 {calDots[d] && (
                   <div style={{ display: 'flex', gap: 3 }}>
                     {calDots[d].map((c, i) => (
-                      <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: c }}/>
+                      <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: c }} />
                     ))}
                   </div>
                 )}
@@ -308,14 +294,14 @@ export default function Strategy() {
                 </div>
                 {i < distributionFlow.length - 1 && (
                   <div style={{ display: 'flex', justifyContent: 'center', margin: '6px 0 6px 16px' }}>
-                    <div style={{ width: 1, height: 20, borderLeft: '2px dashed #C05A38', opacity: 0.4 }}/>
+                    <div style={{ width: 1, height: 20, borderLeft: '2px dashed #C05A38', opacity: 0.4 }} />
                   </div>
                 )}
               </div>
             ))}
           </div>
         </Card>
-      </motion.div>
+      </div>
 
       <style>{`
         .st-root { padding: 32px 36px 48px; position: relative; z-index: 1; box-sizing: border-box; }
@@ -335,6 +321,6 @@ export default function Strategy() {
           to { transform: rotate(360deg); }
         }
       `}</style>
-    </motion.div>
+    </div>
   );
 }

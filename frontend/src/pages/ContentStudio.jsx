@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Sparkles, Copy, RefreshCw, Video, Hash, MessageSquareText, CheckCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
 import api from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { ContentSkeleton } from '../components/SkeletonLoader';
@@ -9,14 +8,11 @@ const PLATFORMS = ['Instagram', 'YouTube', 'LinkedIn', 'Twitter'];
 const GOALS = ['Engagement', 'Conversion', 'Education', 'Viral Reach', 'Brand Awareness'];
 
 const Card = ({ children, style = {} }) => (
-  <motion.div 
-    whileHover={{ y: -2, boxShadow: '0 8px 24px rgba(43,34,24,0.05)' }} 
-    transition={{ duration: 0.2 }}
-    style={{
+  <div style={{
     background: '#FAF9F6', borderRadius: 16, border: '1px solid #EAE4DC',
     boxShadow: '0 1px 8px rgba(43,34,24,0.05)', padding: '22px',
     boxSizing: 'border-box', ...style,
-  }}>{children}</motion.div>
+  }}>{children}</div>
 );
 
 const pill = (active, accent = '#C05A38') => ({
@@ -135,18 +131,8 @@ export default function ContentStudio() {
     setRetryCount(0);
   };
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
-  };
-  const itemAnim = {
-    hidden: { opacity: 0, y: 15 },
-    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
-  };
-
   return (
-    <motion.div className="cs-root" variants={container} initial="hidden" animate="show">
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundImage: 'url(/ambient_marketing_bg.png)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.04, zIndex: 0, pointerEvents: 'none' }} />
+    <div className="cs-root">
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>
         <div>
@@ -223,7 +209,7 @@ export default function ContentStudio() {
       )}
 
       {/* 2-col layout */}
-      <motion.div className="cs-grid" variants={itemAnim}>
+      <div className="cs-grid">
         {/* LEFT control panel */}
         <Card style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div>
@@ -444,7 +430,7 @@ export default function ContentStudio() {
             </div>
           )}
         </div>
-      </motion.div>
+      </div>
 
       <style>{`
         .cs-root { padding: 32px 36px 48px; position: relative; z-index: 1; box-sizing: border-box; }
@@ -453,6 +439,6 @@ export default function ContentStudio() {
         @media (max-width: 860px) { .cs-grid { grid-template-columns: 1fr; } }
         @media (max-width: 640px) { .cs-root { padding: 18px 14px 40px; } h1 { font-size: 24px !important; } }
       `}</style>
-    </motion.div>
+    </div>
   );
 }

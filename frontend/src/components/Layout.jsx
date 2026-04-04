@@ -66,7 +66,16 @@ export default function Layout({ children }) {
   const initials = getUserInitials(userName);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#EDE8DF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      background: '#EDE8DF',
+      backgroundImage: 'url(/src/assets/Full_BG.jpeg)',
+      backgroundPosition: 'center center',
+      backgroundRepeat: 'no-repeat',
+      backgroundSize: 'cover',
+      backgroundAttachment: 'fixed',
+      fontFamily: "'Plus Jakarta Sans', sans-serif" 
+    }}>
 
       {/* ══════════════ DESKTOP NAVBAR ══════════════ */}
       <header style={{
