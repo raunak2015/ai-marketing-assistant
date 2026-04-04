@@ -85,10 +85,10 @@ const NICHES = [
 ];
 
 const SOCIALS = [
-  { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E4405F', handle: '@pritesh_cg', status: 'Connected', lastSync: '5 min ago' },
-  { id: 'youtube', name: 'YouTube', icon: Youtube, color: '#FF0000', handle: 'Pritesh Sharma', status: 'Connected', lastSync: '12 min ago' },
-  { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, color: '#0A66C2', handle: 'Not connected', status: 'Not Connected', lastSync: null },
-  { id: 'twitter', name: 'Twitter / X', icon: Twitter, color: '#000000', handle: 'Not connected', status: 'Not Connected', lastSync: null },
+  { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E4405F' },
+  { id: 'youtube', name: 'YouTube', icon: Youtube, color: '#FF0000' },
+  { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, color: '#0A66C2' },
+  { id: 'twitter', name: 'Twitter / X', icon: Twitter, color: '#000000' },
 ];
 
 const ANALYTICS_STATS = [
@@ -311,7 +311,6 @@ const ConnectedAccounts = ({ userData }) => {
 
   const handleConnect = (platform) => {
     const social = SOCIALS.find(s => s.id === platform);
-    console.log('Opening modal for platform:', platform, social);
     setModalPlatform(social);
     setShowModal(true);
     setHandle('');
@@ -340,26 +339,21 @@ const ConnectedAccounts = ({ userData }) => {
     setConnectingPlatform(modalPlatform.id);
     
     try {
-      console.log('Connecting to:', modalPlatform.id, 'with handle:', handle);
       const result = await api.connectPlatform(modalPlatform.id, handle);
-      console.log('Result:', result);
       
       if (result.success) {
-        // Immediately update local state with the new handle
-        const newHandle = handle || `@${modalPlatform.id}_user`;
+        const savedPlatform = result.data[modalPlatform.id];
         setConnectedPlatforms(prev => ({
           ...prev,
           [modalPlatform.id]: {
             connected: true,
-            handle: newHandle,
-            connectedAt: new Date().toISOString(),
-            lastSync: new Date().toISOString()
+            handle: savedPlatform?.handle || (handle ? `@${handle}` : `@${modalPlatform.id}_user`),
+            connectedAt: savedPlatform?.connectedAt || new Date().toISOString(),
+            lastSync: savedPlatform?.lastSync || new Date().toISOString()
           }
         }));
         setShowModal(false);
-        console.log('Platform connected successfully!');
       } else {
-        console.error('Connection failed:', result.message);
         alert('Connection failed: ' + (result.message || 'Unknown error'));
       }
     } catch (error) {
@@ -389,17 +383,13 @@ const ConnectedAccounts = ({ userData }) => {
     );
   }
 
-  console.log('Rendering with connectedPlatforms:', connectedPlatforms);
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {SOCIALS.map((s, idx) => {
         const platformData = connectedPlatforms[s.id] || {};
         const isConnected = platformData.connected;
         const isConnecting = connectingPlatform === s.id;
-        const platformHandle = platformData.handle 
-          ? (platformData.handle.startsWith('@') ? platformData.handle : `@${platformData.handle}`)
-          : s.handle;
+        const platformHandle = platformData.handle || (isConnected ? '' : 'Not connected');
 
         return (
           <div key={s.id} style={{

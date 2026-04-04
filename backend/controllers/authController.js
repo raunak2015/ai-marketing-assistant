@@ -19,7 +19,14 @@ exports.register = async (req, res) => {
     const user = await User.create({ name, email, password, role });
     res.status(201).json({
       success: true,
-      data: { _id: user._id, name: user.name, email: user.email, role: user.role, token: generateToken(user._id) }
+      data: { 
+        _id: user._id, 
+        name: user.name, 
+        email: user.email, 
+        role: user.role, 
+        connectedPlatforms: user.connectedPlatforms || {},
+        token: generateToken(user._id) 
+      }
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -35,7 +42,14 @@ exports.login = async (req, res) => {
     }
     res.json({
       success: true,
-      data: { _id: user._id, name: user.name, email: user.email, role: user.role, token: generateToken(user._id) }
+      data: { 
+        _id: user._id, 
+        name: user.name, 
+        email: user.email, 
+        role: user.role, 
+        connectedPlatforms: user.connectedPlatforms || {},
+        token: generateToken(user._id) 
+      }
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -101,6 +115,7 @@ exports.googleCallback = async (req, res) => {
       email: user.email,
       role: user.role,
       profileImage: user.profileImage || '',
+      connectedPlatforms: user.connectedPlatforms || {},
       token
     };
     const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:5174'}/login?token=${encodeURIComponent(token)}&user=${encodeURIComponent(JSON.stringify(userData))}`;
@@ -181,9 +196,10 @@ exports.connectPlatform = async (req, res) => {
     }
     
     // Simulate connection (in real app, would validate with actual API)
+    const savedHandle = handle ? (handle.startsWith('@') ? handle : `@${handle}`) : `@${user.name.toLowerCase().replace(/\s+/g, '_')}`;
     user.connectedPlatforms[platform] = {
       connected: true,
-      handle: handle || `@${user.name.toLowerCase().replace(/\s+/g, '_')}`,
+      handle: savedHandle,
       accessToken: accessToken || `mock_token_${Date.now()}`,
       connectedAt: new Date(),
       lastSync: new Date()

@@ -319,17 +319,17 @@ export default function Dashboard() {
             <h2 style={S.cardTitle}>Top Performers</h2>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {performers.map(({ name, score, pct }, i) => (
-              <div key={name}>
+            {performers.map(({ name, score, pct, platform, color, bgColor }, i) => (
+              <div key={platform || name}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
                   <div style={{
                     width: 36, height: 36, borderRadius: '12px', flexShrink: 0,
-                    background: ['#E9EFEB', '#F7EFE4', '#E4EBDF'][i],
-                    color: ['#7A9A6E', '#C9A96E', '#506B40'][i],
+                    background: bgColor || ['#E9EFEB', '#F7EFE4', '#E4EBDF'][i % 3],
+                    color: color || ['#7A9A6E', '#C9A96E', '#506B40'][i % 3],
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 12, fontWeight: 700,
                   }}>
-                    {name.split(' ').map(n => n[0]).join('')}
+                    {name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                   </div>
                   <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: '#2B2218' }}>{name}</span>
                   <span style={{ fontSize: 13, fontWeight: 800, color: '#2B2218' }}>{score}</span>
@@ -338,7 +338,7 @@ export default function Dashboard() {
                   <div style={{
                     height: '100%', borderRadius: 999,
                     width: `${pct}%`,
-                    background: `linear-gradient(90deg, ${['#C05A38', '#C9A96E', '#7A9A6E'][i]}, ${['#C9A96E', '#7A9A6E', '#506B40'][i]})`,
+                    background: color || '#C05A38',
                   }} />
                 </div>
               </div>

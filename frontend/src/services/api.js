@@ -6,9 +6,6 @@ const getToken = () => localStorage.getItem('viralPulseToken');
 // Helper for authenticated requests
 const authHeaders = () => {
   const token = getToken();
-  if (!token) {
-    console.warn('No auth token found!');
-  }
   return token ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
 };
 
@@ -43,15 +40,12 @@ export const api = {
   },
 
   connectPlatform: async (platform, handle, accessToken) => {
-    console.log('API call: connectPlatform', { platform, handle });
     const res = await fetch(`${API_BASE_URL}/auth/connect-platform`, {
       method: 'POST',
       headers: authHeaders(),
       body: JSON.stringify({ platform, handle, accessToken })
     });
-    const data = await res.json();
-    console.log('API response:', data);
-    return data;
+    return res.json();
   },
 
   disconnectPlatform: async (platform) => {

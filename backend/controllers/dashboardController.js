@@ -15,7 +15,7 @@ const hashString = (str) => {
   return Math.abs(hash);
 };
 
-const generateDashboardData = (userId, userName) => {
+const generateDashboardData = (userId, userName, user) => {
   const seed = hashString(userId);
   const rand = (min, max, offset = 0) => {
     const value = seededRandom(seed + offset) * (max - min) + min;
@@ -65,20 +65,30 @@ const generateDashboardData = (userId, userName) => {
   const commentsLow = randInt(50, 300, 17);
   const commentsHigh = randInt(commentsLow + 100, commentsLow + 500, 18);
 
-  const performerNames = [
-    ['Alex Rivera', 'Jordan Smith', 'Sarah Chen', 'Mike Johnson', 'Emma Davis'],
-    ['Priya Sharma', 'David Kim', 'Lisa Wang', 'Tom Wilson', 'Nina Patel'],
-    ['Carlos Rodriguez', 'Amy Zhang', 'Kevin Brown', 'Rachel Green', 'Sam Lee'],
-    ['Maria Garcia', 'James Chen', 'Sofia Martinez', 'Ryan Taylor', 'Aisha Johnson'],
-    ['Omar Hassan', 'Emily Watson', 'Raj Patel', 'Sophie Martin', 'Marcus Johnson'],
-  ];
-  const performerNameSet = performerNames[randInt(0, 4, 19)];
-
-  const performers = performerNameSet.slice(0, 3).map((name, i) => ({
-    name,
-    score: `${rand(4.5, 12.5, 20 + i).toFixed(1)}k`,
-    pct: randInt(55, 98, 23 + i),
-  }));
+  // Random user names for Top Performers (seeded per user for consistency)
+  const firstNames = ['Alex', 'Jordan', 'Sarah', 'Mike', 'Emma', 'Priya', 'David', 'Lisa', 'Tom', 'Nina', 'Carlos', 'Amy', 'Kevin', 'Rachel', 'Sam', 'Maria', 'James', 'Sofia', 'Ryan', 'Aisha', 'Omar', 'Emily', 'Raj', 'Sophie', 'Marcus', 'Chris', 'Taylor', 'Morgan', 'Casey', 'Riley'];
+  const lastNames = ['Rivera', 'Smith', 'Chen', 'Johnson', 'Davis', 'Sharma', 'Kim', 'Wang', 'Wilson', 'Patel', 'Rodriguez', 'Zhang', 'Brown', 'Green', 'Lee', 'Garcia', 'Martinez', 'Taylor', 'Johnson', 'Hassan', 'Watson', 'Martin', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris', 'Clark', 'Lewis', 'Walker'];
+  
+  const getRandomName = (index, offset) => {
+    const firstIdx = Math.floor(seededRandom(seed + offset + index * 2) * firstNames.length);
+    const lastIdx = Math.floor(seededRandom(seed + offset + index * 2 + 1) * lastNames.length);
+    return `${firstNames[firstIdx]} ${lastNames[lastIdx]}`;
+  };
+  
+  const performerColors = ['#C05A38', '#A8442A', '#506B40', '#3A3028', '#7A9A6E', '#C9A96E'];
+  const performerBgColors = ['#FEF0EA', '#FEF0EA', '#E4EBDF', '#F0EBE3', '#E9EFEB', '#F7EFE4'];
+  
+  const performers = [];
+  for (let i = 0; i < 4; i++) {
+    performers.push({
+      name: getRandomName(i, 50),
+      platform: 'user',
+      score: `${rand(4.5, 12.5, 20 + i).toFixed(1)}k`,
+      pct: randInt(55, 98, 23 + i),
+      color: performerColors[i % performerColors.length],
+      bgColor: performerBgColors[i % performerBgColors.length],
+    });
+  }
 
   const aiRecs = [
     { emoji: '🌱', body: 'Post carousels with ', hl: 'growth', tail: ' tagging.' },
@@ -235,7 +245,7 @@ exports.getDashboardData = async (req, res) => {
     let dashboardData = await DashboardData.findOne({ userId });
 
     if (!dashboardData) {
-      const generatedData = generateDashboardData(userId.toString(), user.name);
+      const generatedData = generateDashboardData(userId.toString(), user.name, user);
       dashboardData = await DashboardData.create({
         userId,
         ...generatedData,
@@ -260,7 +270,7 @@ exports.refreshDashboardData = async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    const generatedData = generateDashboardData(userId.toString(), user.name);
+    const generatedData = generateDashboardData(userId.toString(), user.name, user);
     
     const dashboardData = await DashboardData.findOneAndUpdate(
       { userId },
