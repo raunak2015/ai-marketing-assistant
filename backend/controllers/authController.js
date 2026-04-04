@@ -1,4 +1,4 @@
-﻿const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
@@ -118,7 +118,7 @@ exports.googleCallback = async (req, res) => {
       connectedPlatforms: user.connectedPlatforms || {},
       token
     };
-    const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:5174'}/login?token=${encodeURIComponent(token)}&user=${encodeURIComponent(JSON.stringify(userData))}`;
+    const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?token=${encodeURIComponent(token)}&user=${encodeURIComponent(JSON.stringify(userData))}`;
     res.redirect(redirectUrl);
   } catch (error) {
     console.error('Google callback error:', error);
@@ -154,7 +154,7 @@ exports.appleCallback = async (req, res) => {
     }
     
     if (!email) {
-      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5174'}/login?error=apple_auth_failed`);
+      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=apple_auth_failed`);
     }
     
     let user = await User.findOne({ email });
@@ -182,10 +182,10 @@ exports.appleCallback = async (req, res) => {
       connectedPlatforms: user.connectedPlatforms || {},
       token
     };
-    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5174'}/login?token=${encodeURIComponent(token)}&user=${encodeURIComponent(JSON.stringify(userData))}`);
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?token=${encodeURIComponent(token)}&user=${encodeURIComponent(JSON.stringify(userData))}`);
   } catch (error) {
     console.error('Apple callback error:', error);
-    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5174'}/login?error=apple_auth_failed`);
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=apple_auth_failed`);
   }
 };
 
