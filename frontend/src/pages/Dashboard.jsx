@@ -6,7 +6,7 @@ import {
 import { MoreHorizontal, Zap, Users, Percent, FileText, TrendingUp, TrendingDown, BarChart2, Target, Lightbulb } from 'lucide-react';
 import { getUserInitials } from '../utils/userDataGenerator';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const S = {
   card: {

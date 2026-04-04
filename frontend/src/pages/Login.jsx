@@ -57,7 +57,7 @@ export default function Login() {
   const [name, setName] = useState('');
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
-  const API_BASE_URL = 'http://localhost:5000/api';
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -215,24 +215,6 @@ export default function Login() {
                   onMouseLeave={e => e.currentTarget.style.background = '#FAFAFA'}>
                   <GoogleIcon />
                   SIGN IN WITH GOOGLE
-                </button>
-                <button
-                  type="button"
-                  onClick={() => window.location.href = `${API_BASE_URL}/auth/apple`}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
-                    padding: '13px 20px', borderRadius: 10,
-                    border: '1px solid #DDD6CA', background: '#FAFAFA',
-                    fontSize: 13, fontWeight: 600, color: '#2B2218', letterSpacing: '0.04em',
-                    cursor: 'pointer', fontFamily: 'inherit', transition: 'background 150ms',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#F0EBE3'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#FAFAFA'}>
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M13.17 12.5c.36.33.78.62 1.21.84.43.22.9.39 1.4.49.5.1 1.02.15 1.55.15.53 0 1.05-.05 1.55-.15.5-.1.97-.27 1.4-.49.43-.22.85-.51 1.21-.84.36-.33.67-.72.93-1.14.26-.42.46-.88.59-1.37.13-.49.2-1 .2-1.52 0-.52-.07-1.03-.2-1.52-.13-.49-.33-.95-.59-1.37-.26-.42-.57-.81-.93-1.14-.36-.33-.78-.62-1.21-.84-.43-.22-.9-.39-1.4-.49-.5-.1-1.02-.15-1.55-.15-.53 0-1.05.05-1.55.15-.5.1-.97.27-1.4.49-.43.22-.85.51-1.21.84-.36.33-.67.72-.93 1.14-.26.42-.46.88-.59 1.37-.13.49-.2 1-.2 1.52 0 .52.07 1.03.2 1.52.13.49.33.95.59 1.37.26.42.57.81.93 1.14z" fill="currentColor"/>
-                    <path d="M14.85 7.5c0 .9-.27 1.6-.8 2.1-.53.5-1.24.75-2.13.75-.3 0-.58-.03-.85-.08-.27-.05-.5-.13-.69-.24-.19-.11-.34-.25-.45-.42-.11-.17-.17-.36-.19-.57h1.72c.03.17.11.32.24.43.13.11.31.17.54.17.22 0 .4-.06.54-.17.14-.11.21-.27.21-.48 0-.2-.06-.36-.19-.47-.13-.11-.31-.17-.54-.17h-.73v-1.18h.73c.22 0 .4-.05.54-.16.14-.11.21-.26.21-.45 0-.18-.07-.33-.21-.44-.14-.11-.32-.17-.54-.17-.16 0-.3.04-.42.13-.12.09-.2.21-.24.35h-1.72c.03-.41.16-.76.4-1.05.24-.29.56-.51.95-.66.39-.15.82-.23 1.29-.23.51 0 .96.08 1.35.25.39.17.69.4.9.7.21.3.32.64.32 1.04 0 .28-.07.52-.2.73-.13.21-.31.37-.54.48v.05c.28.1.51.27.67.51.16.24.24.54.24.88z" fill="currentColor"/>
-                  </svg>
-                  SIGN IN WITH APPLE
                 </button>
               </div>
 
