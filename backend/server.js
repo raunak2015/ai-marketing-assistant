@@ -23,6 +23,7 @@ app.use('/api/twitter', require('./routes/twitterRoutes'));
 app.use('/api/content', require('./routes/contentRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/strategy', require('./routes/strategyRoutes'));
+app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 
 // Dummy endpoints for Instagram, LinkedIn, TikTok (mock data for frontend)
 app.get('/api/instagram/trending', (req, res) => {
