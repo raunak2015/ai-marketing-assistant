@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import api from '../services/api';
@@ -57,6 +57,22 @@ export default function Login() {
   const [name, setName] = useState('');
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
+  const API_BASE_URL = 'http://localhost:5000/api';
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      localStorage.setItem('viralPulseToken', token);
+      params.delete('token');
+      window.history.replaceState({}, document.title, window.location.pathname + (params.toString() ? `?${params.toString()}` : ''));
+      navigate('/dashboard');
+    }
+  }, [navigate]);
+
+  const handleGoogleSignIn = () => {
+    window.location.href = `${API_BASE_URL}/auth/google`;
+  };
 
   const handleSignIn = async (e) => {
     e.preventDefault();
@@ -173,9 +189,11 @@ export default function Login() {
               {/* Social buttons */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
                 {[
-                  { icon: <GoogleIcon />, label: 'SIGN IN WITH GOOGLE' },
-                ].map(({ icon, label }) => (
+                  { icon: <GoogleIcon />, label: 'SIGN IN WITH GOOGLE', onClick: handleGoogleSignIn },
+                ].map(({ icon, label, onClick }) => (
                   <button key={label}
+                    type="button"
+                    onClick={onClick}
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
                       padding: '13px 20px', borderRadius: 10,
